@@ -33,12 +33,12 @@ public class HueyDarkenerPluginCrashTest
 			}
 		);
 
-		Method recolorRenderable = HueyDarkenerPlugin.class.getDeclaredMethod("recolorRenderable", Renderable.class);
+		Method recolorRenderable = HueyDarkenerPlugin.class.getDeclaredMethod("recolorRenderable", Renderable.class, int.class);
 		recolorRenderable.setAccessible(true);
 
 		try
 		{
-			recolorRenderable.invoke(plugin, renderable);
+			recolorRenderable.invoke(plugin, renderable, 45);
 		}
 		catch (InvocationTargetException ex)
 		{

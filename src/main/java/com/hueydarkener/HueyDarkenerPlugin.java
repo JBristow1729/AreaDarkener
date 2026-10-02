@@ -2,8 +2,10 @@ package com.hueydarkener;
 
 import com.google.inject.Provides;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.IdentityHashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import javax.inject.Inject;
 import net.runelite.api.Client;
@@ -27,9 +29,9 @@ import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
 
 @PluginDescriptor(
-	name = "Huey Darkener",
-	description = "Darkens Hueycoatl terrain and scenery colors",
-	tags = {"huey", "hueycoatl", "visuals", "graphics", "recolor"}
+	name = "Darkener",
+	description = "Darkens bright terrain and scenery colors",
+	tags = {"dark", "terrain", "wintertodt", "gwd", "huey", "vorkath", "visuals", "graphics", "recolor"}
 )
 public class HueyDarkenerPlugin extends Plugin
 {
@@ -45,7 +47,7 @@ public class HueyDarkenerPlugin extends Plugin
 	@Inject
 	private HueyDarkenerConfig config;
 
-	private final int[] remappedHsl = new int[MAX_HSL + 1];
+	private final Map<Integer, int[]> remappedHslByStrength = new HashMap<>();
 	private final Set<Renderable> processedRenderables = Collections.newSetFromMap(new IdentityHashMap<>());
 	private final Set<Model> processedModels = Collections.newSetFromMap(new IdentityHashMap<>());
 	private final Map<Model, ModelSnapshot> modelSnapshots = new IdentityHashMap<>();
@@ -54,7 +56,6 @@ public class HueyDarkenerPlugin extends Plugin
 	@Override
 	protected void startUp()
 	{
-		updateColorMap();
 		triggerMapReload(false);
 	}
 
@@ -67,7 +68,6 @@ public class HueyDarkenerPlugin extends Plugin
 	@Subscribe
 	public void onPreMapLoad(PreMapLoad preMapLoad)
 	{
-		updateColorMap();
 		recolorMap(preMapLoad.getScene());
 	}
 
@@ -79,7 +79,7 @@ public class HueyDarkenerPlugin extends Plugin
 			return;
 		}
 
-		updateColorMap();
+		remappedHslByStrength.clear();
 		nextReloadTick = client.getTickCount() + 1;
 	}
 
@@ -130,74 +130,142 @@ public class HueyDarkenerPlugin extends Plugin
 			{
 				for (Tile tile : xTiles)
 				{
-					if (canRecolorTile(scene, tile))
+					AreaSettings settings = findAreaSettings(scene, tile);
+					if (settings != null)
 					{
-						recolorTile(tile);
+						recolorTile(tile, settings.darknessStrength);
 					}
 				}
 			}
 		}
 	}
 
-	private boolean canRecolorTile(Scene scene, Tile tile)
+	private AreaSettings findAreaSettings(Scene scene, Tile tile)
 	{
 		if (tile == null)
+		{
+			return null;
+		}
+
+		WorldPoint worldPoint = WorldPoint.fromLocalInstance(scene, tile.getLocalLocation(), tile.getPlane());
+		if (worldPoint == null)
+		{
+			return null;
+		}
+
+		return settingsForRegion(worldPoint.getRegionID());
+	}
+
+	private AreaSettings settingsForRegion(int regionId)
+	{
+		Optional<DarkArea> area = DarkArea.findByRegionId(regionId);
+		if (area.isPresent())
+		{
+			return settingsForArea(area.get());
+		}
+
+		return isCustomRegion(regionId) ? new AreaSettings(config.customRegionsDarkness()) : null;
+	}
+
+	private AreaSettings settingsForArea(DarkArea area)
+	{
+		switch (area)
+		{
+			case HUEYCOATL:
+				return config.hueycoatlEnabled() ? new AreaSettings(config.hueycoatlDarkness()) : null;
+			case WINTERTODT:
+				return config.wintertodtEnabled() ? new AreaSettings(config.wintertodtDarkness()) : null;
+			case GOD_WARS_DUNGEON:
+				return config.godWarsDungeonEnabled() ? new AreaSettings(config.godWarsDungeonDarkness()) : null;
+			case VORKATH:
+				return config.vorkathEnabled() ? new AreaSettings(config.vorkathDarkness()) : null;
+			case FREMENNIK_HUNTER_AREA:
+				return config.fremennikHunterAreaEnabled() ? new AreaSettings(config.fremennikHunterAreaDarkness()) : null;
+			case PENGUIN_AGILITY_COURSE:
+				return config.penguinAgilityCourseEnabled() ? new AreaSettings(config.penguinAgilityCourseDarkness()) : null;
+			case WEISS:
+				return config.weissEnabled() ? new AreaSettings(config.weissDarkness()) : null;
+			case ASGARNIAN_ICE_DUNGEON:
+				return config.asgarnianIceDungeonEnabled() ? new AreaSettings(config.asgarnianIceDungeonDarkness()) : null;
+			default:
+				return null;
+		}
+	}
+
+	private boolean isCustomRegion(int regionId)
+	{
+		String customRegionIds = config.customRegionIds();
+		if (customRegionIds == null || customRegionIds.trim().isEmpty())
 		{
 			return false;
 		}
 
-		WorldPoint worldPoint = WorldPoint.fromLocalInstance(scene, tile.getLocalLocation(), tile.getPlane());
-		return worldPoint != null && HueyArea.isHueyRegion(worldPoint.getRegionID());
+		for (String token : customRegionIds.split("[,\\s]+"))
+		{
+			try
+			{
+				if (Integer.parseInt(token) == regionId)
+				{
+					return true;
+				}
+			}
+			catch (NumberFormatException ignored)
+			{
+				// Ignore malformed entries so one typo does not disable the plugin.
+			}
+		}
+
+		return false;
 	}
 
-	private void recolorTile(Tile tile)
+	private void recolorTile(Tile tile, int darknessStrength)
 	{
 		Tile current = tile;
 		while (current != null)
 		{
-			recolorTilePaint(current.getSceneTilePaint());
-			recolorTileModel(current.getSceneTileModel());
-			recolorGroundObject(current.getGroundObject());
-			recolorGameObjects(current.getGameObjects());
-			recolorRenderable(current.getDecorativeObject() == null ? null : current.getDecorativeObject().getRenderable());
-			recolorRenderable(current.getDecorativeObject() == null ? null : current.getDecorativeObject().getRenderable2());
-			recolorRenderable(current.getWallObject() == null ? null : current.getWallObject().getRenderable1());
-			recolorRenderable(current.getWallObject() == null ? null : current.getWallObject().getRenderable2());
+			recolorTilePaint(current.getSceneTilePaint(), darknessStrength);
+			recolorTileModel(current.getSceneTileModel(), darknessStrength);
+			recolorGroundObject(current.getGroundObject(), darknessStrength);
+			recolorGameObjects(current.getGameObjects(), darknessStrength);
+			recolorRenderable(current.getDecorativeObject() == null ? null : current.getDecorativeObject().getRenderable(), darknessStrength);
+			recolorRenderable(current.getDecorativeObject() == null ? null : current.getDecorativeObject().getRenderable2(), darknessStrength);
+			recolorRenderable(current.getWallObject() == null ? null : current.getWallObject().getRenderable1(), darknessStrength);
+			recolorRenderable(current.getWallObject() == null ? null : current.getWallObject().getRenderable2(), darknessStrength);
 			current = current.getBridge();
 		}
 	}
 
-	private void recolorTilePaint(SceneTilePaint paint)
+	private void recolorTilePaint(SceneTilePaint paint, int darknessStrength)
 	{
 		if (paint == null || paint.getTexture() != -1)
 		{
 			return;
 		}
 
-		paint.setNwColor(remappedHsl(paint.getNwColor()));
-		paint.setNeColor(remappedHsl(paint.getNeColor()));
-		paint.setSwColor(remappedHsl(paint.getSwColor()));
-		paint.setSeColor(remappedHsl(paint.getSeColor()));
+		paint.setNwColor(remappedHsl(paint.getNwColor(), darknessStrength));
+		paint.setNeColor(remappedHsl(paint.getNeColor(), darknessStrength));
+		paint.setSwColor(remappedHsl(paint.getSwColor(), darknessStrength));
+		paint.setSeColor(remappedHsl(paint.getSeColor(), darknessStrength));
 	}
 
-	private void recolorTileModel(SceneTileModel model)
+	private void recolorTileModel(SceneTileModel model, int darknessStrength)
 	{
 		if (model == null)
 		{
 			return;
 		}
 
-		adjustColors(model.getTriangleColorA(), model.getTriangleTextureId());
-		adjustColors(model.getTriangleColorB(), model.getTriangleTextureId());
-		adjustColors(model.getTriangleColorC(), model.getTriangleTextureId());
+		adjustColors(model.getTriangleColorA(), model.getTriangleTextureId(), darknessStrength);
+		adjustColors(model.getTriangleColorB(), model.getTriangleTextureId(), darknessStrength);
+		adjustColors(model.getTriangleColorC(), model.getTriangleTextureId(), darknessStrength);
 	}
 
-	private void recolorGroundObject(GroundObject groundObject)
+	private void recolorGroundObject(GroundObject groundObject, int darknessStrength)
 	{
-		recolorRenderable(groundObject == null ? null : groundObject.getRenderable());
+		recolorRenderable(groundObject == null ? null : groundObject.getRenderable(), darknessStrength);
 	}
 
-	private void recolorGameObjects(GameObject[] gameObjects)
+	private void recolorGameObjects(GameObject[] gameObjects, int darknessStrength)
 	{
 		if (gameObjects == null)
 		{
@@ -206,11 +274,11 @@ public class HueyDarkenerPlugin extends Plugin
 
 		for (GameObject gameObject : gameObjects)
 		{
-			recolorRenderable(gameObject == null ? null : gameObject.getRenderable());
+			recolorRenderable(gameObject == null ? null : gameObject.getRenderable(), darknessStrength);
 		}
 	}
 
-	private void recolorRenderable(Renderable renderable)
+	private void recolorRenderable(Renderable renderable, int darknessStrength)
 	{
 		if (!(renderable instanceof Model) || !processedRenderables.add(renderable))
 		{
@@ -224,13 +292,13 @@ public class HueyDarkenerPlugin extends Plugin
 		}
 
 		modelSnapshots.computeIfAbsent(model, ModelSnapshot::new);
-		adjustColors(model.getFaceColors1(), null);
-		adjustColors(model.getFaceColors2(), null);
-		adjustColors(model.getFaceColors3(), null);
-		adjustShortColors(model.getUnlitFaceColors());
+		adjustColors(model.getFaceColors1(), null, darknessStrength);
+		adjustColors(model.getFaceColors2(), null, darknessStrength);
+		adjustColors(model.getFaceColors3(), null, darknessStrength);
+		adjustShortColors(model.getUnlitFaceColors(), darknessStrength);
 	}
 
-	private void adjustColors(int[] colors, int[] textures)
+	private void adjustColors(int[] colors, int[] textures, int darknessStrength)
 	{
 		if (colors == null)
 		{
@@ -241,12 +309,12 @@ public class HueyDarkenerPlugin extends Plugin
 		{
 			if (textures == null || textures.length <= i || textures[i] == -1)
 			{
-				colors[i] = remappedHsl(colors[i]);
+				colors[i] = remappedHsl(colors[i], darknessStrength);
 			}
 		}
 	}
 
-	private void adjustShortColors(short[] colors)
+	private void adjustShortColors(short[] colors, int darknessStrength)
 	{
 		if (colors == null)
 		{
@@ -255,31 +323,29 @@ public class HueyDarkenerPlugin extends Plugin
 
 		for (int i = 0; i < colors.length; i++)
 		{
-			colors[i] = (short) remappedHsl(colors[i] & MAX_HSL);
+			colors[i] = (short) remappedHsl(colors[i] & MAX_HSL, darknessStrength);
 		}
 	}
 
-	private void updateColorMap()
+	private int remappedHsl(int hsl, int darknessStrength)
 	{
-		if (client.getGameState() != GameState.LOGGED_IN && client.getGameState() != GameState.LOADING)
-		{
-			return;
-		}
-
-		for (int hsl = 0; hsl < remappedHsl.length; hsl++)
-		{
-			remappedHsl[hsl] = HslDarkener.darkenPackedHsl(hsl, config.darknessStrength());
-		}
-	}
-
-	private int remappedHsl(int hsl)
-	{
-		if (hsl < 0 || hsl >= remappedHsl.length)
+		if (hsl < 0 || hsl > MAX_HSL)
 		{
 			return hsl;
 		}
 
+		int[] remappedHsl = remappedHslByStrength.computeIfAbsent(darknessStrength, this::buildColorMap);
 		return remappedHsl[hsl];
+	}
+
+	private int[] buildColorMap(int darknessStrength)
+	{
+		int[] remappedHsl = new int[MAX_HSL + 1];
+		for (int hsl = 0; hsl < remappedHsl.length; hsl++)
+		{
+			remappedHsl[hsl] = HslDarkener.darkenPackedHsl(hsl, darknessStrength);
+		}
+		return remappedHsl;
 	}
 
 	private void restoreSnapshots()
@@ -304,6 +370,16 @@ public class HueyDarkenerPlugin extends Plugin
 		if (target != null && source != null && target.length == source.length)
 		{
 			System.arraycopy(source, 0, target, 0, source.length);
+		}
+	}
+
+	private static final class AreaSettings
+	{
+		private final int darknessStrength;
+
+		private AreaSettings(int darknessStrength)
+		{
+			this.darknessStrength = darknessStrength;
 		}
 	}
 

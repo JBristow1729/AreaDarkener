@@ -1,10 +1,23 @@
-# Huey Darkener
+# Darkener
 
-Huey Darkener is a RuneLite external plugin that darkens The Hueycoatl arena terrain and scenery colors to reduce glare.
+Darkener is a RuneLite external plugin that darkens bright terrain and scenery colors to reduce glare.
 
-The Hueycoatl arena can be bright enough that floor hazards and movement cues are difficult to read. This plugin follows the same approach as the Dark Wintertodt plugin: it remaps packed HSL colors during map load, scoped to the Hueycoatl arena region, and exposes one `Darkness Strength` setting from `0` to `100`.
+It uses the same map-load recolouring approach as the original Huey Darkener build and the Dark Wintertodt & GWD plugin, but exposes separate settings for each bright area. Each supported area has a checkbox and its own strength slider from `0` to `100`.
 
-The default darkness strength is `45`.
+Supported areas:
+
+- Hueycoatl
+- Wintertodt
+- God Wars Dungeon
+- Vorkath
+- Fremennik Hunter Area, including the snowy sapphire glacialis area near DKS
+- Penguin Agility Course
+- Weiss
+- Asgarnian Ice Dungeon
+
+There is also a `Custom regions` setting. Add comma-separated region IDs there if you find another bright area before the plugin has a named option for it. RuneLite's `Region ID` plugin can show the current region ID in-game.
+
+The default darkness strength is `45` for every supported area.
 
 ## Run locally
 
