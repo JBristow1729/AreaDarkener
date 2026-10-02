@@ -61,16 +61,23 @@ public interface HueyDarkenerConfig extends Config
 	String weissSection = "weiss";
 
 	@ConfigSection(
+		name = "Phantom Muspah",
+		description = "The Phantom Muspah lair",
+		position = 7
+	)
+	String phantomMuspahSection = "phantomMuspah";
+
+	@ConfigSection(
 		name = "Asgarnian Ice Dungeon",
 		description = "The Asgarnian Ice Dungeon",
-		position = 7
+		position = 8
 	)
 	String asgarnianIceDungeonSection = "asgarnianIceDungeon";
 
 	@ConfigSection(
 		name = "Custom regions",
 		description = "Optional extra region IDs to darken",
-		position = 8
+		position = 9
 	)
 	String customRegionsSection = "customRegions";
 
@@ -245,6 +252,31 @@ public interface HueyDarkenerConfig extends Config
 	)
 	@Range(min = 0, max = 100)
 	default int weissDarkness()
+	{
+		return 45;
+	}
+
+	@ConfigItem(
+		keyName = "phantomMuspahEnabled",
+		name = "Phantom Muspah",
+		description = "Darken the Phantom Muspah lair",
+		section = phantomMuspahSection,
+		position = 0
+	)
+	default boolean phantomMuspahEnabled()
+	{
+		return true;
+	}
+
+	@ConfigItem(
+		keyName = "phantomMuspahDarkness",
+		name = "Strength",
+		description = "How strongly to darken the Phantom Muspah lair",
+		section = phantomMuspahSection,
+		position = 1
+	)
+	@Range(min = 0, max = 100)
+	default int phantomMuspahDarkness()
 	{
 		return 45;
 	}

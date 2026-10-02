@@ -185,6 +185,8 @@ public class HueyDarkenerPlugin extends Plugin
 				return config.penguinAgilityCourseEnabled() ? new AreaSettings(config.penguinAgilityCourseDarkness()) : null;
 			case WEISS:
 				return config.weissEnabled() ? new AreaSettings(config.weissDarkness()) : null;
+			case PHANTOM_MUSPAH:
+				return config.phantomMuspahEnabled() ? new AreaSettings(config.phantomMuspahDarkness()) : null;
 			case ASGARNIAN_ICE_DUNGEON:
 				return config.asgarnianIceDungeonEnabled() ? new AreaSettings(config.asgarnianIceDungeonDarkness()) : null;
 			default:

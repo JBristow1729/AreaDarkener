@@ -13,6 +13,7 @@ Supported areas:
 - Fremennik Hunter Area, including the snowy sapphire glacialis area near DKS
 - Penguin Agility Course
 - Weiss
+- Phantom Muspah
 - Asgarnian Ice Dungeon
 
 There is also a `Custom regions` setting. Add comma-separated region IDs there if you find another bright area before the plugin has a named option for it. RuneLite's `Region ID` plugin can show the current region ID in-game.

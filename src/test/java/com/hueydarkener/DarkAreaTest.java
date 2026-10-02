@@ -20,6 +20,7 @@ public class DarkAreaTest
 		assertEquals(DarkArea.FREMENNIK_HUNTER_AREA, DarkArea.findByRegionId(10811).orElseThrow(AssertionError::new));
 		assertEquals(DarkArea.PENGUIN_AGILITY_COURSE, DarkArea.findByRegionId(10559).orElseThrow(AssertionError::new));
 		assertEquals(DarkArea.WEISS, DarkArea.findByRegionId(11325).orElseThrow(AssertionError::new));
+		assertEquals(DarkArea.PHANTOM_MUSPAH, DarkArea.findByRegionId(11330).orElseThrow(AssertionError::new));
 		assertEquals(DarkArea.ASGARNIAN_ICE_DUNGEON, DarkArea.findByRegionId(11925).orElseThrow(AssertionError::new));
 	}
 
