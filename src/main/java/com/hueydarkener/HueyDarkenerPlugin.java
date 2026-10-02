@@ -212,13 +212,13 @@ public class HueyDarkenerPlugin extends Plugin
 
 	private void recolorRenderable(Renderable renderable)
 	{
-		if (renderable == null || !processedRenderables.add(renderable))
+		if (!(renderable instanceof Model) || !processedRenderables.add(renderable))
 		{
 			return;
 		}
 
-		Model model = renderable instanceof Model ? (Model) renderable : renderable.getModel();
-		if (model == null || !processedModels.add(model))
+		Model model = (Model) renderable;
+		if (!processedModels.add(model))
 		{
 			return;
 		}
