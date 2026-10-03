@@ -96,7 +96,7 @@ final class DarkAreaEntryStore
 		String json = storage.load();
 		if (json == null || json.trim().isEmpty())
 		{
-			return seededEntries();
+			return new ArrayList<>();
 		}
 
 		try
@@ -104,26 +104,16 @@ final class DarkAreaEntryStore
 			List<DarkAreaEntry> loaded = GSON.fromJson(json, ENTRY_LIST_TYPE);
 			if (loaded == null)
 			{
-				return seededEntries();
+				return new ArrayList<>();
 			}
 
 			List<DarkAreaEntry> sanitized = sanitize(loaded);
-			return sanitized.isEmpty() ? seededEntries() : sanitized;
+			return sanitized;
 		}
 		catch (RuntimeException ex)
 		{
-			return seededEntries();
+			return new ArrayList<>();
 		}
-	}
-
-	private List<DarkAreaEntry> seededEntries()
-	{
-		List<DarkAreaEntry> seeded = new ArrayList<>();
-		for (DarkAreaPreset preset : DarkAreaPreset.getPresets())
-		{
-			seeded.add(new DarkAreaEntry(preset.getName(), preset.getRegionIds(), DEFAULT_AREA_STRENGTH, true));
-		}
-		return sanitize(seeded);
 	}
 
 	private List<DarkAreaEntry> sanitize(List<DarkAreaEntry> unsanitized)

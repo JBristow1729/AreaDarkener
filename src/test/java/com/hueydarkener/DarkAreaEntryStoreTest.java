@@ -13,16 +13,12 @@ import org.junit.Test;
 public class DarkAreaEntryStoreTest
 {
 	@Test
-	public void loadsSeededDefaultsWhenNoSavedJson()
+	public void startsEmptyWhenNoSavedJson()
 	{
 		TestStorage storage = new TestStorage(null);
 		DarkAreaEntryStore store = new DarkAreaEntryStore(storage);
 
-		List<DarkAreaEntry> entries = store.getEntries();
-
-		assertEquals("Asgarnian Ice Dungeon", entries.get(0).getName());
-		assertTrue(entries.stream().anyMatch(entry -> entry.getName().equals("Wintertodt")
-			&& entry.getRegionIds().equals(Arrays.asList(6461, 6462))));
+		assertTrue(store.getEntries().isEmpty());
 	}
 
 	@Test
@@ -41,21 +37,21 @@ public class DarkAreaEntryStoreTest
 	}
 
 	@Test
-	public void malformedJsonFallsBackToSeededDefaults()
+	public void malformedJsonFallsBackToEmptyEntries()
 	{
 		TestStorage storage = new TestStorage("not json");
 		DarkAreaEntryStore store = new DarkAreaEntryStore(storage);
 
-		assertTrue(store.getEntries().stream().anyMatch(entry -> entry.getName().equals("Hueycoatl")));
+		assertTrue(store.getEntries().isEmpty());
 	}
 
 	@Test
-	public void malformedEntryShapeFallsBackToSeededDefaults()
+	public void malformedEntryShapeFallsBackToEmptyEntries()
 	{
 		TestStorage storage = new TestStorage("[{\"name\":\"Bad\",\"darkness\":45,\"enabled\":true}]");
 		DarkAreaEntryStore store = new DarkAreaEntryStore(storage);
 
-		assertTrue(store.getEntries().stream().anyMatch(entry -> entry.getName().equals("Hueycoatl")));
+		assertTrue(store.getEntries().isEmpty());
 	}
 
 	@Test
