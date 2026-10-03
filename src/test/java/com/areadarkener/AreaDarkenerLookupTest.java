@@ -1,4 +1,4 @@
-package com.hueydarkener;
+package com.areadarkener;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -13,7 +13,7 @@ public class AreaDarkenerLookupTest
 	@Test
 	public void entryDarknessOverridesGlobalDarkness() throws Exception
 	{
-		HueyDarkenerPlugin plugin = pluginWith(
+		AreaDarkenerPlugin plugin = pluginWith(
 			config(true, 80),
 			"[{\"name\":\"Vorkath\",\"regionIds\":[9023],\"darkness\":60,\"enabled\":true}]"
 		);
@@ -24,7 +24,7 @@ public class AreaDarkenerLookupTest
 	@Test
 	public void globalDarknessAppliesWhenNoEntryMatches() throws Exception
 	{
-		HueyDarkenerPlugin plugin = pluginWith(config(true, 80), "[]");
+		AreaDarkenerPlugin plugin = pluginWith(config(true, 80), "[]");
 
 		assertEquals(80, darknessForRegion(plugin, 12345).orElseThrow(AssertionError::new));
 	}
@@ -32,29 +32,29 @@ public class AreaDarkenerLookupTest
 	@Test
 	public void disabledGlobalDarknessDoesNotApplyWithoutEntry() throws Exception
 	{
-		HueyDarkenerPlugin plugin = pluginWith(config(false, 80), "[]");
+		AreaDarkenerPlugin plugin = pluginWith(config(false, 80), "[]");
 
 		assertFalse(darknessForRegion(plugin, 12345).isPresent());
 	}
 
-	private static HueyDarkenerPlugin pluginWith(HueyDarkenerConfig config, String entriesJson) throws Exception
+	private static AreaDarkenerPlugin pluginWith(AreaDarkenerConfig config, String entriesJson) throws Exception
 	{
-		HueyDarkenerPlugin plugin = new HueyDarkenerPlugin();
+		AreaDarkenerPlugin plugin = new AreaDarkenerPlugin();
 		setField(plugin, "config", config);
 		setField(plugin, "entryStore", new DarkAreaEntryStore(new TestStorage(entriesJson)));
 		return plugin;
 	}
 
-	private static OptionalInt darknessForRegion(HueyDarkenerPlugin plugin, int regionId) throws Exception
+	private static OptionalInt darknessForRegion(AreaDarkenerPlugin plugin, int regionId) throws Exception
 	{
-		Method method = HueyDarkenerPlugin.class.getDeclaredMethod("darknessForRegion", int.class);
+		Method method = AreaDarkenerPlugin.class.getDeclaredMethod("darknessForRegion", int.class);
 		method.setAccessible(true);
 		return (OptionalInt) method.invoke(plugin, regionId);
 	}
 
-	private static HueyDarkenerConfig config(boolean globalEnabled, int globalStrength)
+	private static AreaDarkenerConfig config(boolean globalEnabled, int globalStrength)
 	{
-		return new HueyDarkenerConfig()
+		return new AreaDarkenerConfig()
 		{
 			@Override
 			public boolean globalDarkenEnabled()
@@ -72,7 +72,7 @@ public class AreaDarkenerLookupTest
 
 	private static void setField(Object target, String name, Object value) throws Exception
 	{
-		Field field = HueyDarkenerPlugin.class.getDeclaredField(name);
+		Field field = AreaDarkenerPlugin.class.getDeclaredField(name);
 		field.setAccessible(true);
 		field.set(target, value);
 	}

@@ -1,4 +1,4 @@
-package com.hueydarkener;
+package com.areadarkener;
 
 import java.awt.BorderLayout;
 import java.awt.Color;

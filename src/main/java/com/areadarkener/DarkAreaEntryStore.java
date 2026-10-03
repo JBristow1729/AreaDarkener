@@ -1,4 +1,4 @@
-package com.hueydarkener;
+package com.areadarkener;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
@@ -186,13 +186,13 @@ final class DarkAreaEntryStore
 		@Override
 		public String load()
 		{
-			return configManager.getConfiguration(HueyDarkenerConfig.GROUP, CONFIG_KEY);
+			return configManager.getConfiguration(AreaDarkenerConfig.GROUP, CONFIG_KEY);
 		}
 
 		@Override
 		public void save(String value)
 		{
-			configManager.setConfiguration(HueyDarkenerConfig.GROUP, CONFIG_KEY, value);
+			configManager.setConfiguration(AreaDarkenerConfig.GROUP, CONFIG_KEY, value);
 		}
 	}
 }

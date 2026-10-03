@@ -1,12 +1,12 @@
-package com.hueydarkener;
+package com.areadarkener;
 
 import net.runelite.client.config.Config;
 import net.runelite.client.config.ConfigGroup;
 import net.runelite.client.config.ConfigItem;
 import net.runelite.client.config.Range;
 
-@ConfigGroup(HueyDarkenerConfig.GROUP)
-public interface HueyDarkenerConfig extends Config
+@ConfigGroup(AreaDarkenerConfig.GROUP)
+public interface AreaDarkenerConfig extends Config
 {
 	String GROUP = "areadarkener";
 

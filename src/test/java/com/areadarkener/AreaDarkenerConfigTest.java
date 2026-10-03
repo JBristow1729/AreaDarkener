@@ -1,15 +1,15 @@
-package com.hueydarkener;
+package com.areadarkener;
 
 import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
 
-public class HueyDarkenerConfigTest
+public class AreaDarkenerConfigTest
 {
 	@Test
 	public void globalDarkenStrengthDefaultsToFifty()
 	{
-		HueyDarkenerConfig config = new HueyDarkenerConfig()
+		AreaDarkenerConfig config = new AreaDarkenerConfig()
 		{
 		};
 

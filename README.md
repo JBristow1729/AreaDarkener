@@ -1,6 +1,6 @@
 # Area Darkener
 
-Area Darkener is a RuneLite external plugin that darkens configurable regions of bright terrain and scenery to reduce glare.
+A plugin for darkening any region in RuneScape. Created as an accessibility plugin but useful for all.
 
 The normal RuneLite config stays small:
 
@@ -47,6 +47,6 @@ If you find another bright area, stand there and use `Add current region` from t
 RuneLite Plugin Hub reviews source by pinning a public repository and commit hash. After pushing a release commit, add a marker file to a fork of `runelite/plugin-hub`:
 
 ```text
-repository=https://github.com/JBristow1729/HueyDarkener.git
+repository=https://github.com/JBristow1729/AreaDarkener.git
 commit=<full 40-character commit hash>
 ```

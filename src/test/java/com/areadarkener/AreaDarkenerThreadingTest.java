@@ -1,4 +1,4 @@
-package com.hueydarkener;
+package com.areadarkener;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -15,7 +15,7 @@ public class AreaDarkenerThreadingTest
 	@Test
 	public void requestReloadSchedulesClientStateChangesOnClientThread() throws Exception
 	{
-		HueyDarkenerPlugin plugin = new HueyDarkenerPlugin();
+		AreaDarkenerPlugin plugin = new AreaDarkenerPlugin();
 		RecordingClientThread clientThread = new RecordingClientThread();
 		setField(plugin, "clientThread", clientThread);
 		setField(plugin, "client", throwingClient());
@@ -28,7 +28,7 @@ public class AreaDarkenerThreadingTest
 	@Test
 	public void currentRegionIdDoesNotReadClientFromCallerThread() throws Exception
 	{
-		HueyDarkenerPlugin plugin = new HueyDarkenerPlugin();
+		AreaDarkenerPlugin plugin = new AreaDarkenerPlugin();
 		setField(plugin, "client", throwingClient());
 
 		assertFalse(plugin.currentRegionId().isPresent());
@@ -37,7 +37,7 @@ public class AreaDarkenerThreadingTest
 	@Test
 	public void gameTickDoesNotRefreshCurrentRegionWhenPanelIsHidden() throws Exception
 	{
-		HueyDarkenerPlugin plugin = new HueyDarkenerPlugin();
+		AreaDarkenerPlugin plugin = new AreaDarkenerPlugin();
 		setField(plugin, "client", throwingClient());
 
 		plugin.onGameTick(new GameTick());
@@ -57,7 +57,7 @@ public class AreaDarkenerThreadingTest
 
 	private static void setField(Object target, String name, Object value) throws Exception
 	{
-		Field field = HueyDarkenerPlugin.class.getDeclaredField(name);
+		Field field = AreaDarkenerPlugin.class.getDeclaredField(name);
 		field.setAccessible(true);
 		field.set(target, value);
 	}

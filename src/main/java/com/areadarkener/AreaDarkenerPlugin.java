@@ -1,4 +1,4 @@
-package com.hueydarkener;
+package com.areadarkener;
 
 import com.google.inject.Provides;
 import java.awt.image.BufferedImage;
@@ -38,10 +38,10 @@ import net.runelite.client.ui.NavigationButton;
 
 @PluginDescriptor(
 	name = "Area Darkener",
-	description = "Darkens bright terrain and scenery colors",
-	tags = {"dark", "terrain", "wintertodt", "gwd", "huey", "vorkath", "visuals", "graphics", "recolor"}
+	description = "A plugin for darkening any region in RuneScape. Created as an accessibility plugin but useful for all.",
+	tags = {"dark", "area", "terrain", "accessibility", "wintertodt", "gwd", "huey", "vorkath", "visuals", "graphics", "recolor"}
 )
-public class HueyDarkenerPlugin extends Plugin
+public class AreaDarkenerPlugin extends Plugin
 {
 	private static final int NEXT_REFRESH_UNSET = -1;
 	private static final int MAX_HSL = 0xFFFF;
@@ -53,7 +53,7 @@ public class HueyDarkenerPlugin extends Plugin
 	private ClientThread clientThread;
 
 	@Inject
-	private HueyDarkenerConfig config;
+	private AreaDarkenerConfig config;
 
 	@Inject
 	private ConfigManager configManager;
@@ -120,7 +120,7 @@ public class HueyDarkenerPlugin extends Plugin
 	@Subscribe
 	public void onConfigChanged(ConfigChanged event)
 	{
-		if (!HueyDarkenerConfig.GROUP.equals(event.getGroup()))
+		if (!AreaDarkenerConfig.GROUP.equals(event.getGroup()))
 		{
 			return;
 		}
@@ -143,9 +143,9 @@ public class HueyDarkenerPlugin extends Plugin
 	}
 
 	@Provides
-	HueyDarkenerConfig provideConfig(ConfigManager configManager)
+	AreaDarkenerConfig provideConfig(ConfigManager configManager)
 	{
-		return configManager.getConfig(HueyDarkenerConfig.class);
+		return configManager.getConfig(AreaDarkenerConfig.class);
 	}
 
 	private void triggerMapReload(boolean restoreSnapshotsFirst)
@@ -435,7 +435,7 @@ public class HueyDarkenerPlugin extends Plugin
 
 	private static BufferedImage createIcon()
 	{
-		try (InputStream inputStream = HueyDarkenerPlugin.class.getResourceAsStream("area-darkener-icon.png"))
+		try (InputStream inputStream = AreaDarkenerPlugin.class.getResourceAsStream("area-darkener-icon.png"))
 		{
 			if (inputStream != null)
 			{

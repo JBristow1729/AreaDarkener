@@ -1,13 +1,13 @@
-package com.hueydarkener;
+package com.areadarkener;
 
 import net.runelite.client.RuneLite;
 import net.runelite.client.externalplugins.ExternalPluginManager;
 
-public class HueyDarkenerPluginTest
+public class AreaDarkenerPluginTest
 {
 	public static void main(String[] args) throws Exception
 	{
-		ExternalPluginManager.loadBuiltin(HueyDarkenerPlugin.class);
+		ExternalPluginManager.loadBuiltin(AreaDarkenerPlugin.class);
 		RuneLite.main(args);
 	}
 }
