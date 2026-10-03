@@ -34,6 +34,7 @@ final class AreaDarkenerPanel extends PluginPanel
 {
 	private static final Color SECTION_BACKGROUND = new Color(35, 35, 35);
 	private static final Color CARD_BACKGROUND = new Color(43, 43, 43);
+	private static final int HELPER_NAME_LIMIT = 18;
 
 	private final DarkAreaEntryStore store;
 	private final Supplier<OptionalInt> currentRegionSupplier;
@@ -137,7 +138,7 @@ final class AreaDarkenerPanel extends PluginPanel
 		panel.setBorder(BorderFactory.createEmptyBorder(6, 6, 6, 6));
 
 		JButton add = new JButton(targetEntry == null ? "Add current region" : "+ Current Region");
-		JLabel helper = targetEntry == null ? mutedLabel("Create new entry for region") : null;
+		JLabel helper = targetEntry == null ? mutedLabel("Create new entry for this region") : null;
 		OptionalInt currentRegion = currentRegionSupplier.get();
 		if (!currentRegion.isPresent())
 		{
@@ -155,7 +156,7 @@ final class AreaDarkenerPanel extends PluginPanel
 				add.setEnabled(false);
 				if (targetEntry == null)
 				{
-					helper = mutedLabel("Region already added to \"" + duplicate.get().getName() + "\"");
+					helper = mutedLabel("Region exists in " + truncatedName(duplicate.get().getName()));
 				}
 			}
 		}
@@ -184,6 +185,7 @@ final class AreaDarkenerPanel extends PluginPanel
 		JPanel buttonRow = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 0));
 		buttonRow.setOpaque(false);
 		buttonRow.setAlignmentX(Component.LEFT_ALIGNMENT);
+		buttonRow.setMaximumSize(new Dimension(Integer.MAX_VALUE, 32));
 		buttonRow.add(add);
 		panel.add(buttonRow);
 		if (targetEntry == null && helper != null)
@@ -356,7 +358,24 @@ final class AreaDarkenerPanel extends PluginPanel
 		label.setForeground(Color.GRAY);
 		label.setHorizontalAlignment(SwingConstants.CENTER);
 		label.setAlignmentX(Component.LEFT_ALIGNMENT);
+		label.setMaximumSize(new Dimension(Integer.MAX_VALUE, 20));
 		return label;
+	}
+
+	private static String truncatedName(String name)
+	{
+		if (name == null)
+		{
+			return "";
+		}
+
+		String trimmed = name.trim();
+		if (trimmed.length() <= HELPER_NAME_LIMIT)
+		{
+			return trimmed;
+		}
+
+		return trimmed.substring(0, HELPER_NAME_LIMIT - 3) + "...";
 	}
 
 	private static JPanel rowPanel()
