@@ -1,9 +1,6 @@
 package com.hueydarkener;
 
 import com.google.inject.Provides;
-import java.awt.Color;
-import java.awt.Font;
-import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.InputStream;
@@ -403,18 +400,12 @@ public class HueyDarkenerPlugin extends Plugin
 				return ImageIO.read(inputStream);
 			}
 		}
-		catch (IOException ignored)
+		catch (IOException ex)
 		{
-			// Fall back to a simple generated icon if the resource cannot be read.
+			throw new IllegalStateException("Unable to load Area Darkener icon", ex);
 		}
 
-		BufferedImage image = new BufferedImage(16, 16, BufferedImage.TYPE_INT_ARGB);
-		Graphics2D graphics = image.createGraphics();
-		graphics.setColor(new Color(220, 220, 220));
-		graphics.setFont(graphics.getFont().deriveFont(Font.BOLD, 14f));
-		graphics.drawString("D", 3, 13);
-		graphics.dispose();
-		return image;
+		throw new IllegalStateException("Area Darkener icon resource is missing");
 	}
 
 	private static final class AreaSettings
