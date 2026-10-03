@@ -241,7 +241,7 @@ final class AreaDarkenerPanel extends PluginPanel
 		{
 			card.add(regionRow(entry, regionId));
 		}
-		card.add(currentRegionPanel(entry));
+		card.add(entryCurrentRegionButton(entry));
 		card.add(Box.createVerticalStrut(6));
 
 		JPanel controls = rowPanel();
@@ -257,6 +257,27 @@ final class AreaDarkenerPanel extends PluginPanel
 		card.add(controls);
 
 		return card;
+	}
+
+	private JPanel entryCurrentRegionButton(DarkAreaEntry entry)
+	{
+		JButton add = new JButton("+ Current Region");
+		add.setAlignmentX(Component.CENTER_ALIGNMENT);
+		OptionalInt currentRegion = currentRegionSupplier.get();
+		if (!currentRegion.isPresent() || store.findEntryContainingRegion(currentRegion.getAsInt()).isPresent())
+		{
+			add.setEnabled(false);
+		}
+		add.addActionListener(event ->
+		{
+			OptionalInt region = currentRegionSupplier.get();
+			if (region.isPresent() && store.addCurrentRegionToEntry(entry, region.getAsInt()))
+			{
+				changedCallback.run();
+				rebuild();
+			}
+		});
+		return centeredButtonPanel(add);
 	}
 
 	private Component titleComponent(DarkAreaEntry entry)
