@@ -5,7 +5,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.IdentityHashMap;
 import java.util.Map;
-import java.util.Optional;
+import java.util.OptionalInt;
 import java.util.Set;
 import javax.inject.Inject;
 import net.runelite.api.Client;
@@ -13,6 +13,7 @@ import net.runelite.api.GameObject;
 import net.runelite.api.GameState;
 import net.runelite.api.GroundObject;
 import net.runelite.api.Model;
+import net.runelite.api.Player;
 import net.runelite.api.Renderable;
 import net.runelite.api.Scene;
 import net.runelite.api.SceneTileModel;
@@ -29,7 +30,7 @@ import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
 
 @PluginDescriptor(
-	name = "Darkener",
+	name = "Area Darkener",
 	description = "Darkens bright terrain and scenery colors",
 	tags = {"dark", "terrain", "wintertodt", "gwd", "huey", "vorkath", "visuals", "graphics", "recolor"}
 )
@@ -47,15 +48,20 @@ public class HueyDarkenerPlugin extends Plugin
 	@Inject
 	private HueyDarkenerConfig config;
 
+	@Inject
+	private ConfigManager configManager;
+
 	private final Map<Integer, int[]> remappedHslByStrength = new HashMap<>();
 	private final Set<Renderable> processedRenderables = Collections.newSetFromMap(new IdentityHashMap<>());
 	private final Set<Model> processedModels = Collections.newSetFromMap(new IdentityHashMap<>());
 	private final Map<Model, ModelSnapshot> modelSnapshots = new IdentityHashMap<>();
+	private DarkAreaEntryStore entryStore;
 	private int nextReloadTick = NEXT_REFRESH_UNSET;
 
 	@Override
 	protected void startUp()
 	{
+		entryStore = new DarkAreaEntryStore(configManager, config);
 		triggerMapReload(false);
 	}
 
@@ -79,8 +85,7 @@ public class HueyDarkenerPlugin extends Plugin
 			return;
 		}
 
-		remappedHslByStrength.clear();
-		nextReloadTick = client.getTickCount() + 1;
+		requestReload();
 	}
 
 	@Subscribe
@@ -153,71 +158,45 @@ public class HueyDarkenerPlugin extends Plugin
 			return null;
 		}
 
-		return settingsForRegion(worldPoint.getRegionID());
+		OptionalInt darkness = darknessForRegion(worldPoint.getRegionID());
+		return darkness.isPresent() ? new AreaSettings(darkness.getAsInt()) : null;
 	}
 
-	private AreaSettings settingsForRegion(int regionId)
+	OptionalInt darknessForRegion(int regionId)
 	{
-		Optional<DarkArea> area = DarkArea.findByRegionId(regionId);
-		if (area.isPresent())
+		if (entryStore != null)
 		{
-			return settingsForArea(area.get());
-		}
-
-		return isCustomRegion(regionId) ? new AreaSettings(config.customRegionsDarkness()) : null;
-	}
-
-	private AreaSettings settingsForArea(DarkArea area)
-	{
-		switch (area)
-		{
-			case HUEYCOATL:
-				return config.hueycoatlEnabled() ? new AreaSettings(config.hueycoatlDarkness()) : null;
-			case WINTERTODT:
-				return config.wintertodtEnabled() ? new AreaSettings(config.wintertodtDarkness()) : null;
-			case GOD_WARS_DUNGEON:
-				return config.godWarsDungeonEnabled() ? new AreaSettings(config.godWarsDungeonDarkness()) : null;
-			case VORKATH:
-				return config.vorkathEnabled() ? new AreaSettings(config.vorkathDarkness()) : null;
-			case FREMENNIK_HUNTER_AREA:
-				return config.fremennikHunterAreaEnabled() ? new AreaSettings(config.fremennikHunterAreaDarkness()) : null;
-			case PENGUIN_AGILITY_COURSE:
-				return config.penguinAgilityCourseEnabled() ? new AreaSettings(config.penguinAgilityCourseDarkness()) : null;
-			case WEISS:
-				return config.weissEnabled() ? new AreaSettings(config.weissDarkness()) : null;
-			case PHANTOM_MUSPAH:
-				return config.phantomMuspahEnabled() ? new AreaSettings(config.phantomMuspahDarkness()) : null;
-			case ASGARNIAN_ICE_DUNGEON:
-				return config.asgarnianIceDungeonEnabled() ? new AreaSettings(config.asgarnianIceDungeonDarkness()) : null;
-			default:
-				return null;
-		}
-	}
-
-	private boolean isCustomRegion(int regionId)
-	{
-		String customRegionIds = config.customRegionIds();
-		if (customRegionIds == null || customRegionIds.trim().isEmpty())
-		{
-			return false;
-		}
-
-		for (String token : customRegionIds.split("[,\\s]+"))
-		{
-			try
+			OptionalInt entryDarkness = entryStore.findDarknessForRegion(regionId);
+			if (entryDarkness.isPresent())
 			{
-				if (Integer.parseInt(token) == regionId)
-				{
-					return true;
-				}
-			}
-			catch (NumberFormatException ignored)
-			{
-				// Ignore malformed entries so one typo does not disable the plugin.
+				return entryDarkness;
 			}
 		}
 
-		return false;
+		return config.globalDarkenEnabled() ? OptionalInt.of(config.globalDarkenStrength()) : OptionalInt.empty();
+	}
+
+	void requestReload()
+	{
+		remappedHslByStrength.clear();
+		nextReloadTick = client.getTickCount() + 1;
+	}
+
+	OptionalInt currentRegionId()
+	{
+		if (client.getGameState() != GameState.LOGGED_IN)
+		{
+			return OptionalInt.empty();
+		}
+
+		Player localPlayer = client.getLocalPlayer();
+		if (localPlayer == null)
+		{
+			return OptionalInt.empty();
+		}
+
+		WorldPoint worldPoint = WorldPoint.fromLocalInstance(client, localPlayer.getLocalLocation());
+		return worldPoint == null ? OptionalInt.empty() : OptionalInt.of(worldPoint.getRegionID());
 	}
 
 	private void recolorTile(Tile tile, int darknessStrength)
