@@ -1,6 +1,9 @@
 package com.hueydarkener;
 
 import com.google.inject.Provides;
+import java.awt.Color;
+import java.awt.Graphics2D;
+import java.awt.image.BufferedImage;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.IdentityHashMap;
@@ -28,6 +31,8 @@ import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.events.ConfigChanged;
 import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
+import net.runelite.client.ui.ClientToolbar;
+import net.runelite.client.ui.NavigationButton;
 
 @PluginDescriptor(
 	name = "Area Darkener",
@@ -51,23 +56,42 @@ public class HueyDarkenerPlugin extends Plugin
 	@Inject
 	private ConfigManager configManager;
 
+	@Inject
+	private ClientToolbar clientToolbar;
+
 	private final Map<Integer, int[]> remappedHslByStrength = new HashMap<>();
 	private final Set<Renderable> processedRenderables = Collections.newSetFromMap(new IdentityHashMap<>());
 	private final Set<Model> processedModels = Collections.newSetFromMap(new IdentityHashMap<>());
 	private final Map<Model, ModelSnapshot> modelSnapshots = new IdentityHashMap<>();
 	private DarkAreaEntryStore entryStore;
+	private AreaDarkenerPanel panel;
+	private NavigationButton navigationButton;
 	private int nextReloadTick = NEXT_REFRESH_UNSET;
 
 	@Override
 	protected void startUp()
 	{
 		entryStore = new DarkAreaEntryStore(configManager, config);
+		panel = new AreaDarkenerPanel(entryStore, config, this::currentRegionId, this::requestReload);
+		navigationButton = NavigationButton.builder()
+			.tooltip("Area Darkener")
+			.icon(createIcon())
+			.panel(panel)
+			.priority(6)
+			.build();
+		clientToolbar.addNavigation(navigationButton);
 		triggerMapReload(false);
 	}
 
 	@Override
 	protected void shutDown()
 	{
+		if (navigationButton != null)
+		{
+			clientToolbar.removeNavigation(navigationButton);
+			navigationButton = null;
+			panel = null;
+		}
 		triggerMapReload(true);
 	}
 
@@ -352,6 +376,20 @@ public class HueyDarkenerPlugin extends Plugin
 		{
 			System.arraycopy(source, 0, target, 0, source.length);
 		}
+	}
+
+	private static BufferedImage createIcon()
+	{
+		BufferedImage image = new BufferedImage(16, 16, BufferedImage.TYPE_INT_ARGB);
+		Graphics2D graphics = image.createGraphics();
+		graphics.setColor(new Color(28, 28, 28));
+		graphics.fillOval(1, 1, 14, 14);
+		graphics.setColor(new Color(120, 120, 120));
+		graphics.drawOval(1, 1, 14, 14);
+		graphics.setColor(new Color(220, 220, 220));
+		graphics.drawLine(4, 8, 12, 8);
+		graphics.dispose();
+		return image;
 	}
 
 	private static final class AreaSettings

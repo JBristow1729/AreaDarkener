@@ -1,24 +1,28 @@
-# Darkener
+# Area Darkener
 
-Darkener is a RuneLite external plugin that darkens bright terrain and scenery colors to reduce glare.
+Area Darkener is a RuneLite external plugin that darkens configurable regions of bright terrain and scenery to reduce glare.
 
-It uses the same map-load recolouring approach as the original Huey Darkener build and the Dark Wintertodt & GWD plugin, but exposes separate settings for each bright area. Each supported area has a checkbox and its own strength slider from `0` to `100`.
+The normal RuneLite config stays small:
 
-Supported areas:
+- `Global Darken` darkens every region that is not handled by one of your saved areas.
+- `Global Darken Strength` controls the global fallback strength.
+- `Default Area Strength` controls the starting strength for new areas.
 
-- Hueycoatl
-- Wintertodt
-- God Wars Dungeon
-- Vorkath
-- Fremennik Hunter Area, including the snowy sapphire glacialis area near DKS
-- Penguin Agility Course
-- Weiss
-- Phantom Muspah
+Area management happens in the plugin's right-side panel. The panel lets you add curated bright-area presets, add the region you are currently standing in, rename entries, add multiple region IDs to one entry, set per-entry strength, toggle entries, and remove entries or individual IDs.
+
+Curated presets currently include:
+
 - Asgarnian Ice Dungeon
+- Fremennik Hunter Area
+- God Wars Dungeon
+- Hueycoatl
+- Penguin Agility Course
+- Phantom Muspah
+- Vorkath
+- Weiss
+- Wintertodt
 
-There is also a `Custom regions` setting. Add comma-separated region IDs there if you find another bright area before the plugin has a named option for it. RuneLite's `Region ID` plugin can show the current region ID in-game.
-
-The default darkness strength is `45` for every supported area.
+If you find another bright area, stand there and use `Add current region` from the panel.
 
 ## Run locally
 
