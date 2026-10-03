@@ -82,6 +82,18 @@ public interface HueyDarkenerConfig extends Config
 	String customRegionsSection = "customRegions";
 
 	@ConfigItem(
+		keyName = "defaultAreaStrength",
+		name = "Default Area Strength",
+		description = "Starting darkness strength for new Area Darkener entries",
+		position = 0
+	)
+	@Range(min = 0, max = 100)
+	default int defaultAreaStrength()
+	{
+		return 45;
+	}
+
+	@ConfigItem(
 		keyName = "hueycoatlEnabled",
 		name = "Hueycoatl",
 		description = "Darken the Hueycoatl arena",
