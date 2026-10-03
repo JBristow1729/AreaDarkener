@@ -24,6 +24,7 @@ import net.runelite.api.SceneTileModel;
 import net.runelite.api.SceneTilePaint;
 import net.runelite.api.Tile;
 import net.runelite.api.coords.WorldPoint;
+import net.runelite.api.events.GameStateChanged;
 import net.runelite.api.events.GameTick;
 import net.runelite.api.events.PreMapLoad;
 import net.runelite.client.callback.ClientThread;
@@ -100,7 +101,20 @@ public class HueyDarkenerPlugin extends Plugin
 	@Subscribe
 	public void onPreMapLoad(PreMapLoad preMapLoad)
 	{
+		refreshLatestRegionIdLater();
 		recolorMap(preMapLoad.getScene());
+	}
+
+	@Subscribe
+	public void onGameStateChanged(GameStateChanged event)
+	{
+		if (event.getGameState() == GameState.LOGGED_IN)
+		{
+			refreshLatestRegionIdLater();
+			return;
+		}
+
+		updateLatestRegionId(OptionalInt.empty());
 	}
 
 	@Subscribe
@@ -117,7 +131,6 @@ public class HueyDarkenerPlugin extends Plugin
 	@Subscribe
 	public void onGameTick(GameTick gameTick)
 	{
-		updateLatestRegionId();
 		if (nextReloadTick != NEXT_REFRESH_UNSET && client.getTickCount() >= nextReloadTick)
 		{
 			triggerMapReload(true);
@@ -215,6 +228,11 @@ public class HueyDarkenerPlugin extends Plugin
 	OptionalInt currentRegionId()
 	{
 		return latestRegionId;
+	}
+
+	private void refreshLatestRegionIdLater()
+	{
+		clientThread.invokeLater(() -> updateLatestRegionId());
 	}
 
 	private void updateLatestRegionId()

@@ -55,6 +55,18 @@ final class AreaDarkenerPanel extends PluginPanel
 		rebuild();
 	}
 
+	@Override
+	public Dimension getPreferredSize()
+	{
+		return new Dimension(super.getPreferredSize().width, 0);
+	}
+
+	@Override
+	public Dimension getMinimumSize()
+	{
+		return new Dimension(super.getMinimumSize().width, 0);
+	}
+
 	void rebuild()
 	{
 		getWrappedPanel().removeAll();
