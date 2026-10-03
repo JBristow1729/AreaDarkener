@@ -15,24 +15,23 @@ import net.runelite.client.config.ConfigManager;
 final class DarkAreaEntryStore
 {
 	static final String CONFIG_KEY = "areaEntries";
+	static final int DEFAULT_AREA_STRENGTH = 50;
 	private static final Gson GSON = new Gson();
 	private static final Type ENTRY_LIST_TYPE = new TypeToken<List<DarkAreaEntry>>()
 	{
 	}.getType();
 
 	private final Storage storage;
-	private final HueyDarkenerConfig config;
 	private List<DarkAreaEntry> entries;
 
-	DarkAreaEntryStore(ConfigManager configManager, HueyDarkenerConfig config)
+	DarkAreaEntryStore(ConfigManager configManager)
 	{
-		this(new ConfigManagerStorage(configManager), config);
+		this(new ConfigManagerStorage(configManager));
 	}
 
-	DarkAreaEntryStore(Storage storage, HueyDarkenerConfig config)
+	DarkAreaEntryStore(Storage storage)
 	{
 		this.storage = storage;
-		this.config = config;
 		this.entries = loadEntries();
 	}
 
@@ -89,7 +88,7 @@ final class DarkAreaEntryStore
 
 	DarkAreaEntry createCurrentRegionEntry(int regionId)
 	{
-		return new DarkAreaEntry(nextEntryName(), List.of(regionId), config.defaultAreaStrength(), true);
+		return new DarkAreaEntry(nextEntryName(), List.of(regionId), DEFAULT_AREA_STRENGTH, true);
 	}
 
 	private List<DarkAreaEntry> loadEntries()
@@ -122,7 +121,7 @@ final class DarkAreaEntryStore
 		List<DarkAreaEntry> seeded = new ArrayList<>();
 		for (DarkAreaPreset preset : DarkAreaPreset.getPresets())
 		{
-			seeded.add(new DarkAreaEntry(preset.getName(), preset.getRegionIds(), config.defaultAreaStrength(), true));
+			seeded.add(new DarkAreaEntry(preset.getName(), preset.getRegionIds(), DEFAULT_AREA_STRENGTH, true));
 		}
 		return sanitize(seeded);
 	}

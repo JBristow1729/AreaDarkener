@@ -41,7 +41,7 @@ public class AreaDarkenerLookupTest
 	{
 		HueyDarkenerPlugin plugin = new HueyDarkenerPlugin();
 		setField(plugin, "config", config);
-		setField(plugin, "entryStore", new DarkAreaEntryStore(new TestStorage(entriesJson), config));
+		setField(plugin, "entryStore", new DarkAreaEntryStore(new TestStorage(entriesJson)));
 		return plugin;
 	}
 

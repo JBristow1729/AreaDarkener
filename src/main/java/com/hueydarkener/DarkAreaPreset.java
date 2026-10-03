@@ -41,4 +41,10 @@ final class DarkAreaPreset
 	{
 		return regionIds;
 	}
+
+	@Override
+	public String toString()
+	{
+		return name;
+	}
 }

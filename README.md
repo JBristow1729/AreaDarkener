@@ -6,9 +6,9 @@ The normal RuneLite config stays small:
 
 - `Global Darken` darkens every region that is not handled by one of your saved areas.
 - `Global Darken Strength` controls the global fallback strength.
-- `Default Area Strength` controls the starting strength for new areas.
 
 Area management happens in the plugin's right-side panel. The panel lets you add curated bright-area presets, add the region you are currently standing in, rename entries, add multiple region IDs to one entry, set per-entry strength, toggle entries, and remove entries or individual IDs.
+New areas start with a darkness strength of `50`.
 
 Curated presets currently include:
 

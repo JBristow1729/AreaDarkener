@@ -2,6 +2,7 @@ package com.hueydarkener;
 
 import com.google.inject.Provides;
 import java.awt.Color;
+import java.awt.Font;
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 import java.util.Collections;
@@ -72,8 +73,8 @@ public class HueyDarkenerPlugin extends Plugin
 	@Override
 	protected void startUp()
 	{
-		entryStore = new DarkAreaEntryStore(configManager, config);
-		panel = new AreaDarkenerPanel(entryStore, config, this::currentRegionId, this::requestReload);
+		entryStore = new DarkAreaEntryStore(configManager);
+		panel = new AreaDarkenerPanel(entryStore, this::currentRegionId, this::requestReload);
 		navigationButton = NavigationButton.builder()
 			.tooltip("Area Darkener")
 			.icon(createIcon())
@@ -394,12 +395,9 @@ public class HueyDarkenerPlugin extends Plugin
 	{
 		BufferedImage image = new BufferedImage(16, 16, BufferedImage.TYPE_INT_ARGB);
 		Graphics2D graphics = image.createGraphics();
-		graphics.setColor(new Color(28, 28, 28));
-		graphics.fillOval(1, 1, 14, 14);
-		graphics.setColor(new Color(120, 120, 120));
-		graphics.drawOval(1, 1, 14, 14);
 		graphics.setColor(new Color(220, 220, 220));
-		graphics.drawLine(4, 8, 12, 8);
+		graphics.setFont(graphics.getFont().deriveFont(Font.BOLD, 14f));
+		graphics.drawString("D", 3, 13);
 		graphics.dispose();
 		return image;
 	}

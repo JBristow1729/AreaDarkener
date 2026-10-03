@@ -20,11 +20,13 @@ import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
+import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JSpinner;
 import javax.swing.JTextField;
 import javax.swing.SpinnerNumberModel;
+import javax.swing.SwingConstants;
 import net.runelite.client.ui.PluginPanel;
 
 final class AreaDarkenerPanel extends PluginPanel
@@ -33,20 +35,17 @@ final class AreaDarkenerPanel extends PluginPanel
 	private static final Color CARD_BACKGROUND = new Color(43, 43, 43);
 
 	private final DarkAreaEntryStore store;
-	private final HueyDarkenerConfig config;
 	private final Supplier<OptionalInt> currentRegionSupplier;
 	private final Runnable changedCallback;
 
 	AreaDarkenerPanel(
 		DarkAreaEntryStore store,
-		HueyDarkenerConfig config,
 		Supplier<OptionalInt> currentRegionSupplier,
 		Runnable changedCallback
 	)
 	{
 		super(false);
 		this.store = store;
-		this.config = config;
 		this.currentRegionSupplier = currentRegionSupplier;
 		this.changedCallback = changedCallback;
 
@@ -62,12 +61,8 @@ final class AreaDarkenerPanel extends PluginPanel
 		content.setLayout(new BoxLayout(content, BoxLayout.Y_AXIS));
 		content.setBorder(BorderFactory.createEmptyBorder(8, 8, 8, 8));
 
-		content.add(sectionTitle("Areas"));
-		for (DarkAreaPreset preset : DarkAreaPreset.getPresets())
-		{
-			content.add(presetRow(preset));
-			content.add(Box.createVerticalStrut(4));
-		}
+		content.add(sectionTitle("Presets"));
+		content.add(presetsPanel());
 
 		content.add(Box.createVerticalStrut(8));
 		content.add(sectionTitle("Current region"));
@@ -90,31 +85,45 @@ final class AreaDarkenerPanel extends PluginPanel
 		repaint();
 	}
 
-	private JPanel presetRow(DarkAreaPreset preset)
+	private JPanel presetsPanel()
 	{
-		JPanel row = rowPanel();
-		JLabel label = new JLabel(preset.getName());
+		JPanel panel = new JPanel();
+		panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+		panel.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+		JComboBox<DarkAreaPreset> presets = new JComboBox<>(DarkAreaPreset.getPresets().toArray(new DarkAreaPreset[0]));
 		JButton add = new JButton("Add");
-		Optional<DarkAreaEntry> duplicate = firstDuplicate(preset.getRegionIds());
-		if (duplicate.isPresent())
-		{
-			add.setEnabled(false);
-			add.setToolTipText("Region already added to \"" + duplicate.get().getName() + "\"");
-		}
+		add.setAlignmentX(Component.CENTER_ALIGNMENT);
+		updatePresetAddButton(add, (DarkAreaPreset) presets.getSelectedItem());
+		presets.addActionListener(event -> updatePresetAddButton(add, (DarkAreaPreset) presets.getSelectedItem()));
 		add.addActionListener(event ->
 		{
+			DarkAreaPreset preset = (DarkAreaPreset) presets.getSelectedItem();
+			if (preset == null)
+			{
+				return;
+			}
+
 			List<Integer> regionIds = missingRegionIds(preset.getRegionIds());
 			if (!regionIds.isEmpty())
 			{
 				List<DarkAreaEntry> entries = new ArrayList<>(store.getEntries());
-				entries.add(new DarkAreaEntry(preset.getName(), regionIds, config.defaultAreaStrength(), true));
+				entries.add(new DarkAreaEntry(preset.getName(), regionIds, DarkAreaEntryStore.DEFAULT_AREA_STRENGTH, true));
 				saveAndRefresh(entries);
 			}
 		});
 
-		row.add(label, constraints(0, 0, 1.0));
-		row.add(add, constraints(1, 0, 0.0));
-		return row;
+		panel.add(presets);
+		panel.add(Box.createVerticalStrut(4));
+		panel.add(add);
+		return panel;
+	}
+
+	private void updatePresetAddButton(JButton add, DarkAreaPreset preset)
+	{
+		Optional<DarkAreaEntry> duplicate = preset == null ? Optional.empty() : firstDuplicate(preset.getRegionIds());
+		add.setEnabled(!duplicate.isPresent());
+		add.setToolTipText(duplicate.map(entry -> "Region already added to \"" + entry.getName() + "\"").orElse(null));
 	}
 
 	private JPanel currentRegionPanel(DarkAreaEntry targetEntry)
@@ -126,11 +135,13 @@ final class AreaDarkenerPanel extends PluginPanel
 		panel.setBorder(BorderFactory.createEmptyBorder(6, 6, 6, 6));
 
 		JButton add = new JButton(targetEntry == null ? "Add current region" : "+ current region");
+		add.setAlignmentX(Component.CENTER_ALIGNMENT);
+		JLabel helper = null;
 		OptionalInt currentRegion = currentRegionSupplier.get();
 		if (!currentRegion.isPresent())
 		{
 			add.setEnabled(false);
-			panel.add(mutedLabel("Current region unavailable."));
+			helper = mutedLabel("Current region unavailable.");
 		}
 		else
 		{
@@ -138,7 +149,7 @@ final class AreaDarkenerPanel extends PluginPanel
 			if (duplicate.isPresent())
 			{
 				add.setEnabled(false);
-				panel.add(mutedLabel("Region already added to \"" + duplicate.get().getName() + "\""));
+				helper = mutedLabel("Region already added to \"" + duplicate.get().getName() + "\"");
 			}
 		}
 
@@ -163,6 +174,12 @@ final class AreaDarkenerPanel extends PluginPanel
 			}
 		});
 		panel.add(add);
+		if (targetEntry == null && helper != null)
+		{
+			helper.setAlignmentX(Component.CENTER_ALIGNMENT);
+			panel.add(Box.createVerticalStrut(4));
+			panel.add(helper);
+		}
 		return panel;
 	}
 
@@ -174,6 +191,14 @@ final class AreaDarkenerPanel extends PluginPanel
 		card.setBackground(CARD_BACKGROUND);
 		card.setBorder(BorderFactory.createEmptyBorder(8, 8, 8, 8));
 
+		JPanel header = rowPanel();
+		JCheckBox enabled = new JCheckBox("", entry.isEnabled());
+		enabled.setToolTipText("Enable area");
+		enabled.addActionListener(event ->
+		{
+			entry.setEnabled(enabled.isSelected());
+			saveAndRefresh(store.getEntries());
+		});
 		JTextField name = new JTextField(entry.getName());
 		name.addActionListener(event -> saveName(entry, name.getText()));
 		name.addFocusListener(new FocusAdapter()
@@ -184,7 +209,18 @@ final class AreaDarkenerPanel extends PluginPanel
 				saveName(entry, name.getText());
 			}
 		});
-		card.add(name);
+		JButton remove = new JButton("\uD83D\uDDD1");
+		remove.setToolTipText("Remove entry");
+		remove.addActionListener(event ->
+		{
+			List<DarkAreaEntry> entries = new ArrayList<>(store.getEntries());
+			entries.remove(entry);
+			saveAndRefresh(entries);
+		});
+		header.add(enabled, constraints(0, 0, 0.0));
+		header.add(name, constraints(1, 0, 1.0));
+		header.add(remove, constraints(2, 0, 0.0));
+		card.add(header);
 		card.add(Box.createVerticalStrut(6));
 
 		card.add(new JLabel("IDs"));
@@ -196,31 +232,15 @@ final class AreaDarkenerPanel extends PluginPanel
 		card.add(Box.createVerticalStrut(6));
 
 		JPanel controls = rowPanel();
-		JCheckBox enabled = new JCheckBox("Enabled", entry.isEnabled());
-		enabled.addActionListener(event ->
-		{
-			entry.setEnabled(enabled.isSelected());
-			saveAndRefresh(store.getEntries());
-		});
 		JSpinner darkness = new JSpinner(new SpinnerNumberModel(entry.getDarkness(), 0, 100, 1));
 		darkness.addChangeListener(event ->
 		{
 			entry.setDarkness((Integer) darkness.getValue());
 			saveAndRefresh(store.getEntries());
 		});
-		JButton remove = new JButton("-");
-		remove.setToolTipText("Remove entry");
-		remove.addActionListener(event ->
-		{
-			List<DarkAreaEntry> entries = new ArrayList<>(store.getEntries());
-			entries.remove(entry);
-			saveAndRefresh(entries);
-		});
 
-		controls.add(enabled, constraints(0, 0, 1.0));
-		controls.add(new JLabel("Strength"), constraints(1, 0, 0.0));
-		controls.add(darkness, constraints(2, 0, 0.0));
-		controls.add(remove, constraints(3, 0, 0.0));
+		controls.add(new JLabel("Strength"), constraints(0, 0, 1.0));
+		controls.add(darkness, constraints(1, 0, 0.0));
 		card.add(controls);
 
 		return card;
@@ -294,6 +314,7 @@ final class AreaDarkenerPanel extends PluginPanel
 	{
 		JLabel label = new JLabel(text);
 		label.setForeground(Color.GRAY);
+		label.setHorizontalAlignment(SwingConstants.CENTER);
 		label.setAlignmentX(Component.LEFT_ALIGNMENT);
 		return label;
 	}

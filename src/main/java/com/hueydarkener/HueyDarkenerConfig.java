@@ -30,18 +30,6 @@ public interface HueyDarkenerConfig extends Config
 	@Range(min = 0, max = 100)
 	default int globalDarkenStrength()
 	{
-		return 45;
-	}
-
-	@ConfigItem(
-		keyName = "defaultAreaStrength",
-		name = "Default Area Strength",
-		description = "Starting darkness strength for new Area Darkener entries",
-		position = 2
-	)
-	@Range(min = 0, max = 100)
-	default int defaultAreaStrength()
-	{
-		return 45;
+		return 50;
 	}
 }

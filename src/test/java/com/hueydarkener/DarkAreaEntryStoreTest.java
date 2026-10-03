@@ -16,7 +16,7 @@ public class DarkAreaEntryStoreTest
 	public void loadsSeededDefaultsWhenNoSavedJson()
 	{
 		TestStorage storage = new TestStorage(null);
-		DarkAreaEntryStore store = new DarkAreaEntryStore(storage, defaultConfig());
+		DarkAreaEntryStore store = new DarkAreaEntryStore(storage);
 
 		List<DarkAreaEntry> entries = store.getEntries();
 
@@ -29,7 +29,7 @@ public class DarkAreaEntryStoreTest
 	public void loadsValidSavedJson()
 	{
 		TestStorage storage = new TestStorage("[{\"name\":\"GWD\",\"regionIds\":[11345,11346],\"darkness\":60,\"enabled\":false}]");
-		DarkAreaEntryStore store = new DarkAreaEntryStore(storage, defaultConfig());
+		DarkAreaEntryStore store = new DarkAreaEntryStore(storage);
 
 		List<DarkAreaEntry> entries = store.getEntries();
 
@@ -44,7 +44,7 @@ public class DarkAreaEntryStoreTest
 	public void malformedJsonFallsBackToSeededDefaults()
 	{
 		TestStorage storage = new TestStorage("not json");
-		DarkAreaEntryStore store = new DarkAreaEntryStore(storage, defaultConfig());
+		DarkAreaEntryStore store = new DarkAreaEntryStore(storage);
 
 		assertTrue(store.getEntries().stream().anyMatch(entry -> entry.getName().equals("Hueycoatl")));
 	}
@@ -53,7 +53,7 @@ public class DarkAreaEntryStoreTest
 	public void malformedEntryShapeFallsBackToSeededDefaults()
 	{
 		TestStorage storage = new TestStorage("[{\"name\":\"Bad\",\"darkness\":45,\"enabled\":true}]");
-		DarkAreaEntryStore store = new DarkAreaEntryStore(storage, defaultConfig());
+		DarkAreaEntryStore store = new DarkAreaEntryStore(storage);
 
 		assertTrue(store.getEntries().stream().anyMatch(entry -> entry.getName().equals("Hueycoatl")));
 	}
@@ -63,7 +63,7 @@ public class DarkAreaEntryStoreTest
 	{
 		TestStorage storage = new TestStorage("[{\"name\":\"Low\",\"regionIds\":[1],\"darkness\":-10,\"enabled\":true},"
 			+ "{\"name\":\"High\",\"regionIds\":[2],\"darkness\":250,\"enabled\":true}]");
-		DarkAreaEntryStore store = new DarkAreaEntryStore(storage, defaultConfig());
+		DarkAreaEntryStore store = new DarkAreaEntryStore(storage);
 
 		assertEquals(0, store.getEntries().get(0).getDarkness());
 		assertEquals(100, store.getEntries().get(1).getDarkness());
@@ -74,7 +74,7 @@ public class DarkAreaEntryStoreTest
 	{
 		TestStorage storage = new TestStorage("[{\"name\":\"First\",\"regionIds\":[10,11],\"darkness\":45,\"enabled\":true},"
 			+ "{\"name\":\"Second\",\"regionIds\":[11,12],\"darkness\":50,\"enabled\":true}]");
-		DarkAreaEntryStore store = new DarkAreaEntryStore(storage, defaultConfig());
+		DarkAreaEntryStore store = new DarkAreaEntryStore(storage);
 
 		assertEquals(Arrays.asList(10, 11), store.getEntries().get(0).getRegionIds());
 		assertEquals(Collections.singletonList(12), store.getEntries().get(1).getRegionIds());
@@ -84,7 +84,7 @@ public class DarkAreaEntryStoreTest
 	public void findsEntryContainingRegion()
 	{
 		TestStorage storage = new TestStorage("[{\"name\":\"Vorkath\",\"regionIds\":[9023],\"darkness\":70,\"enabled\":true}]");
-		DarkAreaEntryStore store = new DarkAreaEntryStore(storage, defaultConfig());
+		DarkAreaEntryStore store = new DarkAreaEntryStore(storage);
 
 		Optional<DarkAreaEntry> entry = store.findEntryContainingRegion(9023);
 
@@ -97,26 +97,14 @@ public class DarkAreaEntryStoreTest
 	public void createsIncrementingMyEntryNames()
 	{
 		TestStorage storage = new TestStorage("[{\"name\":\"My Entry 1\",\"regionIds\":[10],\"darkness\":45,\"enabled\":true}]");
-		DarkAreaEntryStore store = new DarkAreaEntryStore(storage, defaultConfig());
+		DarkAreaEntryStore store = new DarkAreaEntryStore(storage);
 
 		DarkAreaEntry entry = store.createCurrentRegionEntry(20);
 
 		assertEquals("My Entry 2", entry.getName());
 		assertEquals(Collections.singletonList(20), entry.getRegionIds());
-		assertEquals(55, entry.getDarkness());
+		assertEquals(50, entry.getDarkness());
 		assertTrue(entry.isEnabled());
-	}
-
-	private static HueyDarkenerConfig defaultConfig()
-	{
-		return new HueyDarkenerConfig()
-		{
-			@Override
-			public int defaultAreaStrength()
-			{
-				return 55;
-			}
-		};
 	}
 
 	private static final class TestStorage implements DarkAreaEntryStore.Storage
