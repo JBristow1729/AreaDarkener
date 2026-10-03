@@ -98,6 +98,7 @@ final class AreaDarkenerPanel extends PluginPanel
 		panel.setAlignmentX(Component.LEFT_ALIGNMENT);
 
 		JComboBox<DarkAreaPreset> presets = new JComboBox<>(DarkAreaPreset.getPresets().toArray(new DarkAreaPreset[0]));
+		presets.setMaximumSize(new Dimension(Integer.MAX_VALUE, presets.getPreferredSize().height));
 		JButton add = new JButton("Add");
 		add.setAlignmentX(Component.CENTER_ALIGNMENT);
 		updatePresetAddButton(add, (DarkAreaPreset) presets.getSelectedItem());
