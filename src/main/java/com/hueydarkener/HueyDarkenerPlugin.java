@@ -67,6 +67,7 @@ public class HueyDarkenerPlugin extends Plugin
 	private AreaDarkenerPanel panel;
 	private NavigationButton navigationButton;
 	private int nextReloadTick = NEXT_REFRESH_UNSET;
+	private OptionalInt latestRegionId = OptionalInt.empty();
 
 	@Override
 	protected void startUp()
@@ -115,6 +116,7 @@ public class HueyDarkenerPlugin extends Plugin
 	@Subscribe
 	public void onGameTick(GameTick gameTick)
 	{
+		updateLatestRegionId();
 		if (nextReloadTick != NEXT_REFRESH_UNSET && client.getTickCount() >= nextReloadTick)
 		{
 			triggerMapReload(true);
@@ -202,25 +204,35 @@ public class HueyDarkenerPlugin extends Plugin
 
 	void requestReload()
 	{
-		remappedHslByStrength.clear();
-		nextReloadTick = client.getTickCount() + 1;
+		clientThread.invokeLater(() ->
+		{
+			remappedHslByStrength.clear();
+			nextReloadTick = client.getTickCount() + 1;
+		});
 	}
 
 	OptionalInt currentRegionId()
 	{
+		return latestRegionId;
+	}
+
+	private void updateLatestRegionId()
+	{
 		if (client.getGameState() != GameState.LOGGED_IN)
 		{
-			return OptionalInt.empty();
+			latestRegionId = OptionalInt.empty();
+			return;
 		}
 
 		Player localPlayer = client.getLocalPlayer();
 		if (localPlayer == null)
 		{
-			return OptionalInt.empty();
+			latestRegionId = OptionalInt.empty();
+			return;
 		}
 
 		WorldPoint worldPoint = WorldPoint.fromLocalInstance(client, localPlayer.getLocalLocation());
-		return worldPoint == null ? OptionalInt.empty() : OptionalInt.of(worldPoint.getRegionID());
+		latestRegionId = worldPoint == null ? OptionalInt.empty() : OptionalInt.of(worldPoint.getRegionID());
 	}
 
 	private void recolorTile(Tile tile, int darknessStrength)

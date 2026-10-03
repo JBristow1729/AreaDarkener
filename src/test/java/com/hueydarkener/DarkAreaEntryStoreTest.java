@@ -50,6 +50,15 @@ public class DarkAreaEntryStoreTest
 	}
 
 	@Test
+	public void malformedEntryShapeFallsBackToSeededDefaults()
+	{
+		TestStorage storage = new TestStorage("[{\"name\":\"Bad\",\"darkness\":45,\"enabled\":true}]");
+		DarkAreaEntryStore store = new DarkAreaEntryStore(storage, defaultConfig());
+
+		assertTrue(store.getEntries().stream().anyMatch(entry -> entry.getName().equals("Hueycoatl")));
+	}
+
+	@Test
 	public void clampsDarknessToZeroThroughOneHundred()
 	{
 		TestStorage storage = new TestStorage("[{\"name\":\"Low\",\"regionIds\":[1],\"darkness\":-10,\"enabled\":true},"

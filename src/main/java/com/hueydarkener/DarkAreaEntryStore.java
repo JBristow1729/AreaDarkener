@@ -103,9 +103,15 @@ final class DarkAreaEntryStore
 		try
 		{
 			List<DarkAreaEntry> loaded = GSON.fromJson(json, ENTRY_LIST_TYPE);
-			return loaded == null ? seededEntries() : sanitize(loaded);
+			if (loaded == null)
+			{
+				return seededEntries();
+			}
+
+			List<DarkAreaEntry> sanitized = sanitize(loaded);
+			return sanitized.isEmpty() ? seededEntries() : sanitized;
 		}
-		catch (JsonSyntaxException ex)
+		catch (RuntimeException ex)
 		{
 			return seededEntries();
 		}
@@ -133,6 +139,11 @@ final class DarkAreaEntryStore
 			}
 
 			List<Integer> regionIds = new ArrayList<>();
+			if (entry.getRegionIds() == null)
+			{
+				continue;
+			}
+
 			for (Integer regionId : entry.getRegionIds())
 			{
 				if (regionId != null && regionId > 0 && seenRegionIds.add(regionId))
