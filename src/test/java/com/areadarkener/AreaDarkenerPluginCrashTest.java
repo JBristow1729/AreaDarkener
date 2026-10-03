@@ -1,4 +1,4 @@
-package com.hueydarkener;
+package com.areadarkener;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -6,12 +6,12 @@ import java.lang.reflect.Proxy;
 import net.runelite.api.Renderable;
 import org.junit.Test;
 
-public class HueyDarkenerPluginCrashTest
+public class AreaDarkenerPluginCrashTest
 {
 	@Test
 	public void doesNotRequestModelsFromNonModelRenderablesDuringMapLoad() throws Exception
 	{
-		HueyDarkenerPlugin plugin = new HueyDarkenerPlugin();
+		AreaDarkenerPlugin plugin = new AreaDarkenerPlugin();
 		Renderable renderable = (Renderable) Proxy.newProxyInstance(
 			Renderable.class.getClassLoader(),
 			new Class<?>[]{Renderable.class},
@@ -33,12 +33,12 @@ public class HueyDarkenerPluginCrashTest
 			}
 		);
 
-		Method recolorRenderable = HueyDarkenerPlugin.class.getDeclaredMethod("recolorRenderable", Renderable.class);
+		Method recolorRenderable = AreaDarkenerPlugin.class.getDeclaredMethod("recolorRenderable", Renderable.class, int.class);
 		recolorRenderable.setAccessible(true);
 
 		try
 		{
-			recolorRenderable.invoke(plugin, renderable);
+			recolorRenderable.invoke(plugin, renderable, 45);
 		}
 		catch (InvocationTargetException ex)
 		{

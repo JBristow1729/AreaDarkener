@@ -1,4 +1,4 @@
-package com.hueydarkener;
+package com.areadarkener;
 
 final class HslDarkener
 {

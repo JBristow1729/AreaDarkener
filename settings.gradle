@@ -4,4 +4,4 @@ pluginManagement {
 	}
 }
 
-rootProject.name = 'huey-darkener'
+rootProject.name = 'AreaDarkener'
