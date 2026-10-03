@@ -5,6 +5,8 @@ import java.awt.Color;
 import java.awt.Font;
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.IdentityHashMap;
@@ -12,6 +14,7 @@ import java.util.Map;
 import java.util.OptionalInt;
 import java.util.Set;
 import javax.inject.Inject;
+import javax.imageio.ImageIO;
 import net.runelite.api.Client;
 import net.runelite.api.GameObject;
 import net.runelite.api.GameState;
@@ -393,6 +396,18 @@ public class HueyDarkenerPlugin extends Plugin
 
 	private static BufferedImage createIcon()
 	{
+		try (InputStream inputStream = HueyDarkenerPlugin.class.getResourceAsStream("area-darkener-icon.png"))
+		{
+			if (inputStream != null)
+			{
+				return ImageIO.read(inputStream);
+			}
+		}
+		catch (IOException ignored)
+		{
+			// Fall back to a simple generated icon if the resource cannot be read.
+		}
+
 		BufferedImage image = new BufferedImage(16, 16, BufferedImage.TYPE_INT_ARGB);
 		Graphics2D graphics = image.createGraphics();
 		graphics.setColor(new Color(220, 220, 220));
