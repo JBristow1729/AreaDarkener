@@ -131,6 +131,7 @@ public class HueyDarkenerPlugin extends Plugin
 	@Subscribe
 	public void onGameTick(GameTick gameTick)
 	{
+		updateLatestRegionId();
 		if (nextReloadTick != NEXT_REFRESH_UNSET && client.getTickCount() >= nextReloadTick)
 		{
 			triggerMapReload(true);

@@ -6,7 +6,6 @@ import static org.junit.Assert.assertFalse;
 import java.lang.reflect.Field;
 import java.lang.reflect.Proxy;
 import net.runelite.api.Client;
-import net.runelite.api.events.GameTick;
 import net.runelite.client.callback.ClientThread;
 import org.junit.Test;
 
@@ -32,15 +31,6 @@ public class AreaDarkenerThreadingTest
 		setField(plugin, "client", throwingClient());
 
 		assertFalse(plugin.currentRegionId().isPresent());
-	}
-
-	@Test
-	public void gameTickDoesNotRefreshCurrentRegionWhenNoReloadIsPending() throws Exception
-	{
-		HueyDarkenerPlugin plugin = new HueyDarkenerPlugin();
-		setField(plugin, "client", throwingClient());
-
-		plugin.onGameTick(new GameTick());
 	}
 
 	private static Client throwingClient()
