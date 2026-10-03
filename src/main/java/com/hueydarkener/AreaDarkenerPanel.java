@@ -11,6 +11,7 @@ import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.event.FocusAdapter;
 import java.awt.event.FocusEvent;
+import java.awt.event.HierarchyEvent;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -38,6 +39,7 @@ final class AreaDarkenerPanel extends PluginPanel
 	private final DarkAreaEntryStore store;
 	private final Supplier<OptionalInt> currentRegionSupplier;
 	private final Runnable changedCallback;
+	private volatile boolean panelShowing;
 	private DarkAreaEntry editingEntry;
 
 	AreaDarkenerPanel(
@@ -52,6 +54,13 @@ final class AreaDarkenerPanel extends PluginPanel
 		this.changedCallback = changedCallback;
 
 		getWrappedPanel().setLayout(new BorderLayout());
+		getWrappedPanel().addHierarchyListener(event ->
+		{
+			if ((event.getChangeFlags() & HierarchyEvent.SHOWING_CHANGED) != 0)
+			{
+				panelShowing = getWrappedPanel().isShowing();
+			}
+		});
 		rebuild();
 	}
 
@@ -101,6 +110,11 @@ final class AreaDarkenerPanel extends PluginPanel
 		getScrollPane().getViewport().repaint();
 		revalidate();
 		repaint();
+	}
+
+	boolean isPanelShowing()
+	{
+		return panelShowing;
 	}
 
 	private JPanel presetsPanel()
