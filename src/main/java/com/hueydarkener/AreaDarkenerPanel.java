@@ -4,6 +4,7 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
+import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -81,7 +82,11 @@ final class AreaDarkenerPanel extends PluginPanel
 			content.add(Box.createVerticalStrut(8));
 		}
 
-		getWrappedPanel().add(content, BorderLayout.NORTH);
+		getWrappedPanel().add(content, BorderLayout.CENTER);
+		getWrappedPanel().revalidate();
+		getWrappedPanel().repaint();
+		getScrollPane().getViewport().revalidate();
+		getScrollPane().getViewport().repaint();
 		revalidate();
 		repaint();
 	}
@@ -181,7 +186,7 @@ final class AreaDarkenerPanel extends PluginPanel
 			}
 		});
 
-		panel.add(add);
+		panel.add(targetEntry == null ? add : centeredButtonPanel(add));
 		if (targetEntry == null && helper != null)
 		{
 			helper.setAlignmentX(Component.CENTER_ALIGNMENT);
@@ -353,6 +358,16 @@ final class AreaDarkenerPanel extends PluginPanel
 		label.setHorizontalAlignment(SwingConstants.CENTER);
 		label.setAlignmentX(Component.LEFT_ALIGNMENT);
 		return label;
+	}
+
+	private static JPanel centeredButtonPanel(JButton button)
+	{
+		JPanel panel = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 0));
+		panel.setOpaque(false);
+		panel.setAlignmentX(Component.LEFT_ALIGNMENT);
+		panel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 32));
+		panel.add(button);
+		return panel;
 	}
 
 	private static JPanel rowPanel()
