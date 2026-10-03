@@ -236,14 +236,20 @@ final class AreaDarkenerPanel extends PluginPanel
 		card.add(header);
 		card.add(Box.createVerticalStrut(6));
 
+		card.add(strengthPanel(entry));
+		card.add(Box.createVerticalStrut(6));
+
 		card.add(new JLabel("IDs"));
 		for (Integer regionId : entry.getRegionIds())
 		{
 			card.add(regionRow(entry, regionId, currentRegionSupplier.get()));
 		}
 		card.add(entryCurrentRegionButton(entry));
-		card.add(Box.createVerticalStrut(6));
+		return card;
+	}
 
+	private JPanel strengthPanel(DarkAreaEntry entry)
+	{
 		JPanel controls = rowPanel();
 		JSpinner darkness = new JSpinner(new SpinnerNumberModel(entry.getDarkness(), 0, 100, 1));
 		darkness.addChangeListener(event ->
@@ -254,9 +260,7 @@ final class AreaDarkenerPanel extends PluginPanel
 
 		controls.add(new JLabel("Strength"), constraints(0, 0, 1.0));
 		controls.add(darkness, constraints(1, 0, 0.0));
-		card.add(controls);
-
-		return card;
+		return controls;
 	}
 
 	private JPanel entryCurrentRegionButton(DarkAreaEntry entry)

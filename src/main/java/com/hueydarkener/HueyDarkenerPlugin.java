@@ -221,19 +221,39 @@ public class HueyDarkenerPlugin extends Plugin
 	{
 		if (client.getGameState() != GameState.LOGGED_IN)
 		{
-			latestRegionId = OptionalInt.empty();
+			updateLatestRegionId(OptionalInt.empty());
 			return;
 		}
 
 		Player localPlayer = client.getLocalPlayer();
 		if (localPlayer == null)
 		{
-			latestRegionId = OptionalInt.empty();
+			updateLatestRegionId(OptionalInt.empty());
 			return;
 		}
 
 		WorldPoint worldPoint = WorldPoint.fromLocalInstance(client, localPlayer.getLocalLocation());
-		latestRegionId = worldPoint == null ? OptionalInt.empty() : OptionalInt.of(worldPoint.getRegionID());
+		updateLatestRegionId(worldPoint == null ? OptionalInt.empty() : OptionalInt.of(worldPoint.getRegionID()));
+	}
+
+	private void updateLatestRegionId(OptionalInt regionId)
+	{
+		if (sameRegion(latestRegionId, regionId))
+		{
+			return;
+		}
+
+		latestRegionId = regionId;
+		if (panel != null)
+		{
+			panel.rebuild();
+		}
+	}
+
+	private static boolean sameRegion(OptionalInt first, OptionalInt second)
+	{
+		return first.isPresent() == second.isPresent()
+			&& (!first.isPresent() || first.getAsInt() == second.getAsInt());
 	}
 
 	private void recolorTile(Tile tile, int darknessStrength)
