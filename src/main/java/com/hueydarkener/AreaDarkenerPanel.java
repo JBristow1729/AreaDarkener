@@ -239,7 +239,7 @@ final class AreaDarkenerPanel extends PluginPanel
 		card.add(new JLabel("IDs"));
 		for (Integer regionId : entry.getRegionIds())
 		{
-			card.add(regionRow(entry, regionId));
+			card.add(regionRow(entry, regionId, currentRegionSupplier.get()));
 		}
 		card.add(entryCurrentRegionButton(entry));
 		card.add(Box.createVerticalStrut(6));
@@ -309,10 +309,11 @@ final class AreaDarkenerPanel extends PluginPanel
 		return label;
 	}
 
-	private JPanel regionRow(DarkAreaEntry entry, Integer regionId)
+	private JPanel regionRow(DarkAreaEntry entry, Integer regionId, OptionalInt currentRegion)
 	{
 		JPanel row = rowPanel();
-		row.add(new JLabel(String.valueOf(regionId)), constraints(0, 0, 1.0));
+		boolean isCurrent = currentRegion.isPresent() && currentRegion.getAsInt() == regionId;
+		row.add(new JLabel(regionId + (isCurrent ? " (current)" : "")), constraints(0, 0, 1.0));
 		JButton remove = new JButton("-");
 		remove.setToolTipText("Remove region ID");
 		remove.addActionListener(event ->
