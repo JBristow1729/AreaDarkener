@@ -3,6 +3,7 @@ package com.areadarkener;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 
+import com.google.gson.Gson;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.OptionalInt;
@@ -10,6 +11,8 @@ import org.junit.Test;
 
 public class AreaDarkenerLookupTest
 {
+	private static final Gson GSON = new Gson();
+
 	@Test
 	public void entryDarknessOverridesGlobalDarkness() throws Exception
 	{
@@ -41,7 +44,7 @@ public class AreaDarkenerLookupTest
 	{
 		AreaDarkenerPlugin plugin = new AreaDarkenerPlugin();
 		setField(plugin, "config", config);
-		setField(plugin, "entryStore", new DarkAreaEntryStore(new TestStorage(entriesJson)));
+		setField(plugin, "entryStore", new DarkAreaEntryStore(new TestStorage(entriesJson), GSON));
 		return plugin;
 	}
 

@@ -1,5 +1,6 @@
 package com.areadarkener;
 
+import com.google.gson.Gson;
 import com.google.inject.Provides;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
@@ -59,6 +60,9 @@ public class AreaDarkenerPlugin extends Plugin
 	private ConfigManager configManager;
 
 	@Inject
+	private Gson gson;
+
+	@Inject
 	private ClientToolbar clientToolbar;
 
 	private final Map<Integer, int[]> remappedHslByStrength = new HashMap<>();
@@ -74,7 +78,7 @@ public class AreaDarkenerPlugin extends Plugin
 	@Override
 	protected void startUp()
 	{
-		entryStore = new DarkAreaEntryStore(configManager);
+		entryStore = new DarkAreaEntryStore(configManager, gson);
 		panel = new AreaDarkenerPanel(entryStore, this::currentRegionId, this::requestReload);
 		navigationButton = NavigationButton.builder()
 			.tooltip("Area Darkener")

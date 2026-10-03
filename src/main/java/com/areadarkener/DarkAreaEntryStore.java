@@ -1,7 +1,6 @@
 package com.areadarkener;
 
 import com.google.gson.Gson;
-import com.google.gson.JsonSyntaxException;
 import com.google.gson.reflect.TypeToken;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
@@ -16,22 +15,23 @@ final class DarkAreaEntryStore
 {
 	static final String CONFIG_KEY = "areaEntries";
 	static final int DEFAULT_AREA_STRENGTH = 50;
-	private static final Gson GSON = new Gson();
 	private static final Type ENTRY_LIST_TYPE = new TypeToken<List<DarkAreaEntry>>()
 	{
 	}.getType();
 
+	private final Gson gson;
 	private final Storage storage;
 	private List<DarkAreaEntry> entries;
 
-	DarkAreaEntryStore(ConfigManager configManager)
+	DarkAreaEntryStore(ConfigManager configManager, Gson gson)
 	{
-		this(new ConfigManagerStorage(configManager));
+		this(new ConfigManagerStorage(configManager), gson);
 	}
 
-	DarkAreaEntryStore(Storage storage)
+	DarkAreaEntryStore(Storage storage, Gson gson)
 	{
 		this.storage = storage;
+		this.gson = gson;
 		this.entries = loadEntries();
 	}
 
@@ -43,7 +43,7 @@ final class DarkAreaEntryStore
 	void saveEntries(List<DarkAreaEntry> entries)
 	{
 		this.entries = sanitize(entries);
-		storage.save(GSON.toJson(this.entries, ENTRY_LIST_TYPE));
+		storage.save(gson.toJson(this.entries, ENTRY_LIST_TYPE));
 	}
 
 	Optional<DarkAreaEntry> findEntryContainingRegion(int regionId)
@@ -101,7 +101,7 @@ final class DarkAreaEntryStore
 
 		try
 		{
-			List<DarkAreaEntry> loaded = GSON.fromJson(json, ENTRY_LIST_TYPE);
+			List<DarkAreaEntry> loaded = gson.fromJson(json, ENTRY_LIST_TYPE);
 			if (loaded == null)
 			{
 				return new ArrayList<>();
