@@ -25,10 +25,13 @@ import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 import javax.swing.JSpinner;
 import javax.swing.JTextField;
+import javax.swing.ScrollPaneConstants;
 import javax.swing.SpinnerNumberModel;
 import javax.swing.SwingConstants;
+import net.runelite.client.ui.ColorScheme;
 import net.runelite.client.ui.PluginPanel;
 
 final class AreaDarkenerPanel extends PluginPanel
@@ -39,6 +42,8 @@ final class AreaDarkenerPanel extends PluginPanel
 	private final DarkAreaEntryStore store;
 	private final Supplier<OptionalInt> currentRegionSupplier;
 	private final Runnable changedCallback;
+	private final JPanel mainPanel;
+	private final JScrollPane scrollPane;
 	private volatile boolean panelShowing;
 	private DarkAreaEntry editingEntry;
 
@@ -48,66 +53,76 @@ final class AreaDarkenerPanel extends PluginPanel
 		Runnable changedCallback
 	)
 	{
-		super();
+		super(false);
 		this.store = store;
 		this.currentRegionSupplier = currentRegionSupplier;
 		this.changedCallback = changedCallback;
 
-		getWrappedPanel().setLayout(new BorderLayout());
-		getWrappedPanel().addHierarchyListener(event ->
+		setLayout(new BorderLayout());
+		setBackground(ColorScheme.DARK_GRAY_COLOR);
+		addHierarchyListener(event ->
 		{
 			if ((event.getChangeFlags() & HierarchyEvent.SHOWING_CHANGED) != 0)
 			{
-				panelShowing = getWrappedPanel().isShowing();
+				panelShowing = isShowing();
 			}
 		});
+
+		mainPanel = new FixedWidthPanel();
+		mainPanel.setLayout(new BoxLayout(mainPanel, BoxLayout.Y_AXIS));
+		mainPanel.setBorder(BorderFactory.createEmptyBorder(8, 8, 8, 8));
+		mainPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+		JPanel northPanel = new FixedWidthPanel();
+		northPanel.setLayout(new BorderLayout());
+		northPanel.add(mainPanel, BorderLayout.NORTH);
+
+		scrollPane = new JScrollPane(northPanel);
+		scrollPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+		add(scrollPane, BorderLayout.CENTER);
+
 		rebuild();
 	}
 
 	@Override
 	public Dimension getPreferredSize()
 	{
-		return new Dimension(super.getPreferredSize().width, 0);
+		return new Dimension(PANEL_WIDTH + SCROLLBAR_WIDTH, super.getPreferredSize().height);
 	}
 
 	@Override
 	public Dimension getMinimumSize()
 	{
-		return new Dimension(super.getMinimumSize().width, 0);
+		return new Dimension(PANEL_WIDTH + SCROLLBAR_WIDTH, 0);
 	}
 
 	void rebuild()
 	{
-		getWrappedPanel().removeAll();
+		mainPanel.removeAll();
 
-		JPanel content = new JPanel();
-		content.setLayout(new BoxLayout(content, BoxLayout.Y_AXIS));
-		content.setBorder(BorderFactory.createEmptyBorder(8, 8, 8, 8));
+		mainPanel.add(sectionTitle("Current region"));
+		mainPanel.add(currentRegionPanel(null));
 
-		content.add(sectionTitle("Current region"));
-		content.add(currentRegionPanel(null));
+		mainPanel.add(Box.createVerticalStrut(8));
+		mainPanel.add(sectionTitle("Presets"));
+		mainPanel.add(presetsPanel());
 
-		content.add(Box.createVerticalStrut(8));
-		content.add(sectionTitle("Presets"));
-		content.add(presetsPanel());
-
-		content.add(Box.createVerticalStrut(8));
-		content.add(sectionTitle("My Areas"));
+		mainPanel.add(Box.createVerticalStrut(8));
+		mainPanel.add(sectionTitle("My Areas"));
 		if (store.getEntries().isEmpty())
 		{
-			content.add(mutedLabel("No areas yet."));
+			mainPanel.add(mutedLabel("No areas yet."));
 		}
 		for (DarkAreaEntry entry : store.getEntries())
 		{
-			content.add(entryCard(entry));
-			content.add(Box.createVerticalStrut(8));
+			mainPanel.add(entryCard(entry));
+			mainPanel.add(Box.createVerticalStrut(8));
 		}
 
-		getWrappedPanel().add(content, BorderLayout.CENTER);
-		getWrappedPanel().revalidate();
-		getWrappedPanel().repaint();
-		getScrollPane().getViewport().revalidate();
-		getScrollPane().getViewport().repaint();
+		mainPanel.revalidate();
+		mainPanel.repaint();
+		scrollPane.getViewport().revalidate();
+		scrollPane.getViewport().repaint();
 		revalidate();
 		repaint();
 	}
@@ -440,5 +455,26 @@ final class AreaDarkenerPanel extends PluginPanel
 		constraints.fill = GridBagConstraints.HORIZONTAL;
 		constraints.insets = new Insets(1, 1, 1, 1);
 		return constraints;
+	}
+
+	private static final class FixedWidthPanel extends JPanel
+	{
+		@Override
+		public Dimension getPreferredSize()
+		{
+			return new Dimension(PANEL_WIDTH, super.getPreferredSize().height);
+		}
+
+		@Override
+		public Dimension getMinimumSize()
+		{
+			return new Dimension(PANEL_WIDTH, super.getMinimumSize().height);
+		}
+
+		@Override
+		public Dimension getMaximumSize()
+		{
+			return new Dimension(PANEL_WIDTH, super.getMaximumSize().height);
+		}
 	}
 }
