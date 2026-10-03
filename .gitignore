@@ -4,3 +4,6 @@ out/
 *.iml
 *.ipr
 *.iws
+src/test/
+docs/
+plugin-hub-area-darkener/

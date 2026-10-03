@@ -169,8 +169,7 @@ public class AreaDarkenerPlugin extends Plugin
 
 	private void recolorMap(Scene scene)
 	{
-		processedRenderables.clear();
-		processedModels.clear();
+		clearRecolorState();
 		Tile[][][] tiles = scene.isInstance() ? scene.getTiles() : scene.getExtendedTiles();
 		if (tiles == null)
 		{
@@ -228,7 +227,7 @@ public class AreaDarkenerPlugin extends Plugin
 	{
 		clientThread.invokeLater(() ->
 		{
-			remappedHslByStrength.clear();
+			clearRecolorState();
 			nextReloadTick = client.getTickCount() + 1;
 		});
 	}
@@ -410,6 +409,14 @@ public class AreaDarkenerPlugin extends Plugin
 			remappedHsl[hsl] = HslDarkener.darkenPackedHsl(hsl, darknessStrength);
 		}
 		return remappedHsl;
+	}
+
+	private void clearRecolorState()
+	{
+		processedRenderables.clear();
+		processedModels.clear();
+		remappedHslByStrength.clear();
+		restoreSnapshots();
 	}
 
 	private void restoreSnapshots()
