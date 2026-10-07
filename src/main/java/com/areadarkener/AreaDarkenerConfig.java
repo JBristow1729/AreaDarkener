@@ -13,7 +13,7 @@ public interface AreaDarkenerConfig extends Config
 	@ConfigItem(
 		keyName = "globalDarkenEnabled",
 		name = "Global Darken",
-		description = "Darken every region that is not handled by an enabled Area Darkener entry",
+		description = "This will darken everything everywhere in RuneScape. It is better to take the time to set up the regions you want to be darker via the side panel.",
 		position = 0
 	)
 	default boolean globalDarkenEnabled()
@@ -31,5 +31,16 @@ public interface AreaDarkenerConfig extends Config
 	default int globalDarkenStrength()
 	{
 		return 50;
+	}
+
+	@ConfigItem(
+		keyName = "boundaryLines",
+		name = "Boundary Lines",
+		description = "Draw region boundaries on the ground to help you add neighbouring regions via the side panel",
+		position = 2
+	)
+	default boolean boundaryLines()
+	{
+		return false;
 	}
 }
