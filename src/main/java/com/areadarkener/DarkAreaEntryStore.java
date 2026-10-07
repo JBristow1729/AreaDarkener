@@ -21,7 +21,7 @@ final class DarkAreaEntryStore
 
 	private final Gson gson;
 	private final Storage storage;
-	private List<DarkAreaEntry> entries;
+	private volatile List<DarkAreaEntry> entries;
 
 	DarkAreaEntryStore(ConfigManager configManager, Gson gson)
 	{

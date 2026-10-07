@@ -8,6 +8,7 @@ import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.awt.GridLayout;
 import java.awt.Insets;
 import java.awt.event.FocusAdapter;
 import java.awt.event.FocusEvent;
@@ -281,10 +282,18 @@ final class AreaDarkenerPanel extends PluginPanel
 		card.add(Box.createVerticalStrut(6));
 
 		card.add(new JLabel("IDs"));
+		JPanel ids = new JPanel(new GridLayout(0, 2, 6, 2));
+		ids.setOpaque(false);
+		ids.setAlignmentX(Component.LEFT_ALIGNMENT);
 		for (Integer regionId : entry.getRegionIds())
 		{
-			card.add(regionRow(entry, regionId, currentRegionSupplier.get()));
+			ids.add(regionRow(entry, regionId, currentRegionSupplier.get()));
 		}
+		if (entry.getRegionIds().size() % 2 != 0)
+		{
+			ids.add(Box.createGlue());
+		}
+		card.add(ids);
 		card.add(entryCurrentRegionButton(entry));
 		return card;
 	}
@@ -358,8 +367,15 @@ final class AreaDarkenerPanel extends PluginPanel
 	{
 		JPanel row = rowPanel();
 		boolean isCurrent = currentRegion.isPresent() && currentRegion.getAsInt() == regionId;
-		row.add(new JLabel(regionId + (isCurrent ? " (current)" : "")), constraints(0, 0, 1.0));
+		JLabel label = new JLabel(regionId.toString());
+		if (isCurrent)
+		{
+			label.setForeground(ColorScheme.BRAND_ORANGE);
+			label.setToolTipText("Current region");
+		}
+		row.add(label, constraints(0, 0, 1.0));
 		JButton remove = new JButton("-");
+		remove.setMargin(new Insets(1, 5, 1, 5));
 		remove.setToolTipText("Remove region ID");
 		remove.addActionListener(event ->
 		{

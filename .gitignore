@@ -6,4 +6,5 @@ out/
 *.iws
 src/test/
 docs/
+.superpowers/
 plugin-hub-area-darkener/
