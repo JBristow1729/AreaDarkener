@@ -15,7 +15,8 @@ final class AreaDarkenerOverlay extends Overlay
 {
 	private final Client client;
 	private final AreaDarkenerPlugin plugin;
-	private final DarknessTransition transition = new DarknessTransition();
+	private DarknessTransition transition = new DarknessTransition();
+	private boolean tileModeLastFrame;
 
 	@Inject
 	AreaDarkenerOverlay(Client client, AreaDarkenerPlugin plugin)
@@ -34,6 +35,16 @@ final class AreaDarkenerOverlay extends Overlay
 		if (client.getGameState() != GameState.LOGGED_IN)
 		{
 			return null;
+		}
+		if (plugin.tileRecolourEnabled())
+		{
+			tileModeLastFrame = true;
+			return null;
+		}
+		if (tileModeLastFrame)
+		{
+			transition = new DarknessTransition();
+			tileModeLastFrame = false;
 		}
 		long now = System.nanoTime();
 		transition.setTarget(plugin.currentDarkness(), now);
