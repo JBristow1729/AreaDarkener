@@ -15,6 +15,7 @@ import net.runelite.api.Player;
 import net.runelite.api.coords.WorldPoint;
 import net.runelite.api.events.GameStateChanged;
 import net.runelite.api.events.GameTick;
+import net.runelite.api.events.PreMapLoad;
 import net.runelite.client.callback.ClientThread;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.Subscribe;
@@ -45,11 +46,17 @@ public class AreaDarkenerPlugin extends Plugin
 	private NavigationButton navigationButton;
 	private AreaDarkenerOverlay overlay;
 	private RegionBoundaryOverlay boundaryOverlay;
+	private final TileRecolourer tileRecolourer = new TileRecolourer(this::darknessForRegion);
+	private boolean tileRecolourMode;
+	private boolean started;
+	private boolean rebuildAfterLogin;
+	private int nextReloadTick = -1;
 	private volatile OptionalInt latestRegionId = OptionalInt.empty();
 
 	@Override
 	protected void startUp()
 	{
+		started = true;
 		entryStore = new DarkAreaEntryStore(configManager, gson);
 		panel = new AreaDarkenerPanel(entryStore, this::currentRegionId, this::requestReload);
 		navigationButton = NavigationButton.builder()
@@ -65,6 +72,19 @@ public class AreaDarkenerPlugin extends Plugin
 	@Override
 	protected void shutDown()
 	{
+		started = false;
+		rebuildAfterLogin = false;
+		boolean restoreScene = tileRecolourMode;
+		tileRecolourMode = false;
+		nextReloadTick = -1;
+		clientThread.invokeLater(() ->
+		{
+			tileRecolourer.restore();
+			if (restoreScene && client.getGameState() == GameState.LOGGED_IN)
+			{
+				client.setGameState(GameState.LOADING);
+			}
+		});
 		if (boundaryOverlay != null)
 		{
 			overlayManager.remove(boundaryOverlay);
@@ -89,7 +109,17 @@ public class AreaDarkenerPlugin extends Plugin
 	{
 		if (event.getGameState() == GameState.LOGGED_IN)
 		{
-			requestReload();
+			clientThread.invokeLater(() ->
+			{
+				// Only consume an explicitly deferred mode switch, never loop after a reload.
+				if (started && rebuildAfterLogin && client.getGameState() == GameState.LOGGED_IN)
+				{
+					rebuildAfterLogin = false;
+					tileRecolourer.restore();
+					client.setGameState(GameState.LOADING);
+				}
+				refreshSceneState();
+			});
 		}
 		else
 		{
@@ -109,13 +139,29 @@ public class AreaDarkenerPlugin extends Plugin
 	{
 		if (AreaDarkenerConfig.GROUP.equals(event.getGroup()))
 		{
-			requestReload();
+			if ("boundaryLines".equals(event.getKey()))
+			{
+				clientThread.invokeLater(() -> { refreshSceneState(); });
+			}
+			else
+			{
+				requestReload();
+			}
 		}
 	}
 
 	@Subscribe
 	public void onGameTick(GameTick event)
 	{
+		if (nextReloadTick >= 0 && client.getTickCount() >= nextReloadTick)
+		{
+			nextReloadTick = -1;
+			tileRecolourer.restore();
+			if (client.getGameState() == GameState.LOGGED_IN)
+			{
+				client.setGameState(GameState.LOADING);
+			}
+		}
 		if (boundaryOverlay != null)
 		{
 			boundaryOverlay.refresh();
@@ -157,17 +203,62 @@ public class AreaDarkenerPlugin extends Plugin
 		return point == null ? 0 : darknessForRegion(point.getRegionID()).orElse(0);
 	}
 
+	@Subscribe
+	public void onPreMapLoad(PreMapLoad event)
+	{
+		if (tileRecolourMode)
+		{
+			tileRecolourer.recolor(event.getScene());
+		}
+	}
+
+	boolean tileRecolourEnabled()
+	{
+		return tileRecolourMode;
+	}
+
 	void requestReload()
 	{
-		// No map reload is needed: the overlay picks up the new strength on its next frame.
 		clientThread.invokeLater(() ->
 		{
-			updateLatestRegionId();
-			if (boundaryOverlay != null)
+			if (!started)
 			{
-				boundaryOverlay.refresh();
+				return;
 			}
+			boolean wasTileMode = tileRecolourMode;
+			tileRecolourMode = config.tileRecolour();
+			if (wasTileMode != tileRecolourMode)
+			{
+				// Rebuild immediately when switching, so the two modes cannot overlap.
+				nextReloadTick = -1;
+				tileRecolourer.restore();
+				if (client.getGameState() == GameState.LOGGED_IN)
+				{
+					rebuildAfterLogin = false;
+					client.setGameState(GameState.LOADING);
+				}
+				else if (client.getGameState() == GameState.LOADING)
+				{
+					// The current load may already have uploaded colors from the previous mode.
+					rebuildAfterLogin = true;
+				}
+			}
+			else if (tileRecolourMode)
+			{
+				// Coalesce config and side-panel changes into one client scene rebuild.
+				nextReloadTick = client.getTickCount() + 1;
+			}
+			refreshSceneState();
 		});
+	}
+
+	private void refreshSceneState()
+	{
+		updateLatestRegionId();
+		if (boundaryOverlay != null)
+		{
+			boundaryOverlay.refresh();
+		}
 	}
 
 	OptionalInt currentRegionId()

@@ -43,4 +43,15 @@ public interface AreaDarkenerConfig extends Config
 	{
 		return false;
 	}
+
+	@ConfigItem(
+		keyName = "tileRecolour",
+		name = "Tile Recolour",
+		description = "Enable this to recolour tiles rather than an overlay. Forces a client-rerender",
+		position = 3
+	)
+	default boolean tileRecolour()
+	{
+		return false;
+	}
 }
